@@ -352,7 +352,7 @@
     <!-- MODAL QR CODE -->
     <div class="modal-overlay" id="qr-modal">
         <div class="modal-content" style="max-width: 340px;">
-            <h3 style="font-size: 20px; color: #1e3a8a; margin-bottom: 8px;">📱 Mã QR Bưu Thiếp</h3>
+            <h3 style="font-size: 20px; color: #1e3a8a; margin-bottom: 8px;"> Mã QR Bưu Thiếp</h3>
             <p style="font-size: 13px; color: #64748b; margin-bottom: 16px;">Quét mã để mở bưu thiếp và tự tay bóc phong bì!</p>
             <div id="qr-code-box" style="display: flex; justify-content: center; margin-bottom: 16px; padding: 12px; background: #f8fafc; border-radius: 12px;"></div>
             <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
@@ -381,6 +381,13 @@
                 <div class="stamp-opt selected" data-src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Crect width='100' height='120' fill='%23fdfbf7'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' dominant-baseline='middle'%3E%E2%9C%88%EF%B8%8F%3C/text%3E%3Ctext x='50' y='105' font-size='14' text-anchor='middle' font-family='monospace' fill='%23333' font-weight='bold'%3EAIR MAIL%3C/text%3E%3C/svg%3E"><img src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Crect width='100' height='120' fill='%23fdfbf7'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' dominant-baseline='middle'%3E%E2%9C%88%EF%B8%8F%3C/text%3E%3Ctext x='50' y='105' font-size='14' text-anchor='middle' font-family='monospace' fill='%23333' font-weight='bold'%3EAIR MAIL%3C/text%3E%3C/svg%3E"></div>
                 <div class="stamp-opt" data-src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Crect width='100' height='120' fill='%23fdfbf7'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%8C%8D%3C/text%3E%3Ctext x='50' y='105' font-size='14' text-anchor='middle' font-family='monospace' fill='%23333' font-weight='bold'%3ETRAVEL%3C/text%3E%3C/svg%3E"><img src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Crect width='100' height='120' fill='%23fdfbf7'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%8C%8D%3C/text%3E%3Ctext x='50' y='105' font-size='14' text-anchor='middle' font-family='monospace' fill='%23333' font-weight='bold'%3ETRAVEL%3C/text%3E%3C/svg%3E"></div>
                 <div class="stamp-opt" data-src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Crect width='100' height='120' fill='%23fdfbf7'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%93%AC%3C/text%3E%3Ctext x='50' y='105' font-size='14' text-anchor='middle' font-family='monospace' fill='%23333' font-weight='bold'%3EPOST%3C/text%3E%3C/svg%3E"><img src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Crect width='100' height='120' fill='%23fdfbf7'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%93%AC%3C/text%3E%3Ctext x='50' y='105' font-size='14' text-anchor='middle' font-family='monospace' fill='%23333' font-weight='bold'%3EPOST%3C/text%3E%3C/svg%3E"></div>
+                <!-- Tem ảnh tùy chỉnh từ file -->
+                <div class="stamp-opt" id="stamp-ka" data-file="./ka.png">
+                    <img src="./ka.png" alt="Ka stamp" style="width:100%;height:100%;object-fit:cover;">
+                </div>
+                <div class="stamp-opt" id="stamp-final" data-file="./final.png">
+                    <img src="./final.png" alt="Final stamp" style="width:100%;height:100%;object-fit:cover;">
+                </div>
                 <!-- Nút Tải Tem Cá Nhân -->
                 <div class="stamp-opt" id="custom-stamp-btn" title="Tải ảnh tem của bạn">
                     <div style="font-size: 28px; color: #3b82f6; margin-bottom: 2px;">+</div>
@@ -553,14 +560,58 @@
             stampModal.classList.add('active');
         });
 
-        // Chọn tem mặc định
+        // Chọn tem mặc định (SVG inline)
         stampOptions.forEach(opt => {
-            opt.addEventListener('click', () => {
-                document.querySelectorAll('.stamp-opt').forEach(el => el.classList.remove('selected'));
-                opt.classList.add('selected');
-                currentStampBase64 = opt.getAttribute('data-src');
-            });
+            if (opt.hasAttribute('data-src')) {
+                opt.addEventListener('click', () => {
+                    document.querySelectorAll('.stamp-opt').forEach(el => el.classList.remove('selected'));
+                    opt.classList.add('selected');
+                    currentStampBase64 = opt.getAttribute('data-src');
+                });
+            }
         });
+
+        // Hàm load ảnh từ URL → base64
+        function loadImageAsBase64(url) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    canvas.getContext('2d').drawImage(img, 0, 0);
+                    resolve(canvas.toDataURL('image/png'));
+                };
+                img.onerror = reject;
+                img.src = url + '?t=' + Date.now(); // tránh cache CORS
+            });
+        }
+
+        // Khởi tạo 2 tem từ file ảnh
+        async function initFileStamps() {
+            const fileStamps = [
+                { id: 'stamp-ka', file: './ka.png' },
+                { id: 'stamp-final', file: './final.png' }
+            ];
+            for (const { id, file } of fileStamps) {
+                const el = document.getElementById(id);
+                if (!el) continue;
+                try {
+                    const base64 = await loadImageAsBase64(file);
+                    el.setAttribute('data-src', base64);
+                    el.addEventListener('click', () => {
+                        document.querySelectorAll('.stamp-opt').forEach(e => e.classList.remove('selected'));
+                        el.classList.add('selected');
+                        currentStampBase64 = base64;
+                    });
+                } catch (e) {
+                    console.warn('Không load được tem:', file, e);
+                    el.style.display = 'none'; // ẩn nếu lỗi
+                }
+            }
+        }
+        initFileStamps();
 
         // Tự tải ảnh TEM CÁ NHÂN
         customStampBtn.addEventListener('click', () => stampUpload.click());
