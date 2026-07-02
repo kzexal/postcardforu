@@ -140,6 +140,22 @@
         .writing-area::-webkit-scrollbar { width: 6px; }
         .writing-area::-webkit-scrollbar-thumb { background-color: #c7c1b5; border-radius: 3px; }
 
+        /* --- Postmark (Dấu bưu điện) --- */
+        .postmark {
+            position: absolute; pointer-events: none;
+            opacity: 0.65; mix-blend-mode: multiply;
+            display: none; z-index: 5;
+        }
+        .postmark svg { width: 100%; height: 100%; }
+        #card-postmark {
+            top: 15px; right: 20px; width: 150px; height: 67px;
+            transform: rotate(5deg);
+        }
+        #env-postmark {
+            top: 50%; left: 50%; width: 160px; height: 72px;
+            transform: translate(-30%, -50%) rotate(-8deg);
+        }
+
         /* --- Controls & Buttons --- */
         .controls { display: flex; gap: 15px; z-index: 30; flex-wrap: wrap; justify-content: center; }
         .btn {
@@ -207,6 +223,7 @@
         }
         #custom-stamp-btn:hover { background: #e2e8f0; border-color: #94a3b8; }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -242,6 +259,21 @@
 
                 <!-- Mặt sau -->
                 <div class="card-face card-back">
+                    <div class="postmark" id="card-postmark">
+                        <svg viewBox="0 0 200 90">
+                            <g stroke="#444" fill="none" stroke-width="1.5" opacity="0.7">
+                                <path d="M 80 20 Q 95 5 110 20 T 140 20 T 170 20 T 200 20" />
+                                <path d="M 80 35 Q 95 20 110 35 T 140 35 T 170 35 T 200 35" />
+                                <path d="M 80 50 Q 95 35 110 50 T 140 50 T 170 50 T 200 50" />
+                                <path d="M 80 65 Q 95 50 110 65 T 140 65 T 170 65 T 200 65" />
+                            </g>
+                            <circle cx="45" cy="45" r="40" stroke="#444" stroke-width="2" fill="none" opacity="0.7"/>
+                            <circle cx="45" cy="45" r="37" stroke="#444" stroke-width="1.2" fill="none" opacity="0.7"/>
+                            <text x="45" y="30" font-size="12" font-weight="bold" text-anchor="middle" font-family="'Courier Prime', monospace" fill="#444" opacity="0.8">POSTAGE</text>
+                            <text x="45" y="49" font-size="10" font-weight="bold" text-anchor="middle" font-family="'Courier Prime', monospace" fill="#444" opacity="0.8" id="card-pm-date">--</text>
+                            <text x="45" y="66" font-size="10" font-weight="bold" text-anchor="middle" font-family="'Courier Prime', monospace" fill="#444" opacity="0.8" id="card-pm-time">--</text>
+                        </svg>
+                    </div>
                     <div class="back-title">~ thân gửi ~</div>
                     <textarea class="writing-area" id="message-text" placeholder="Viết những dòng yêu thương ở đây..."></textarea>
                 </div>
@@ -257,6 +289,21 @@
         <!-- Con tem -->
         <div class="stamp" id="env-stamp">
             <img id="stamp-display-img" src="" alt="stamp">
+            <div class="postmark" id="env-postmark">
+                <svg viewBox="0 0 200 90">
+                    <g stroke="#444" fill="none" stroke-width="1.5" opacity="0.7">
+                        <path d="M 80 20 Q 95 5 110 20 T 140 20 T 170 20 T 200 20" />
+                        <path d="M 80 35 Q 95 20 110 35 T 140 35 T 170 35 T 200 35" />
+                        <path d="M 80 50 Q 95 35 110 50 T 140 50 T 170 50 T 200 50" />
+                        <path d="M 80 65 Q 95 50 110 65 T 140 65 T 170 65 T 200 65" />
+                    </g>
+                    <circle cx="45" cy="45" r="40" stroke="#444" stroke-width="2" fill="none" opacity="0.7"/>
+                    <circle cx="45" cy="45" r="37" stroke="#444" stroke-width="1.2" fill="none" opacity="0.7"/>
+                    <text x="45" y="30" font-size="12" font-weight="bold" text-anchor="middle" font-family="'Courier Prime', monospace" fill="#444" opacity="0.8">POSTAGE</text>
+                    <text x="45" y="49" font-size="10" font-weight="bold" text-anchor="middle" font-family="'Courier Prime', monospace" fill="#444" opacity="0.8" id="env-pm-date">--</text>
+                    <text x="45" y="66" font-size="10" font-weight="bold" text-anchor="middle" font-family="'Courier Prime', monospace" fill="#444" opacity="0.8" id="env-pm-time">--</text>
+                </svg>
+            </div>
         </div>
     </div>
 
@@ -314,8 +361,18 @@
             <p style="font-size: 14px; color: #64748b;">Copy đường link dưới đây gửi cho người nhận nhé. Khi mở ra, họ sẽ được tự tay bóc phong bì!</p>
             <div class="link-input-container">
                 <input type="text" id="final-link-input" class="link-input" readonly>
-                <button class="btn btn-action" id="copy-modal-btn" style="box-shadow:none; border-radius: 8px;">Copy</button>
+                <button class="btn btn-action" id="copy-modal-btn" style="box-shadow:none; border-radius: 8px; padding: 12px 15px;">Copy</button>
+                <button class="btn" id="generate-qr-btn" style="box-shadow:none; border-radius: 8px; background: #475569; color: white; padding: 12px 15px;">QR</button>
             </div>
+            
+            <div id="qr-container" style="display: none; flex-direction: column; align-items: center; margin: 15px 0;">
+                <canvas id="qr-canvas" style="margin-bottom: 10px; border: 4px solid #fff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></canvas>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-action" id="copy-qr-btn" style="box-shadow:none; border-radius: 8px; font-size: 14px; padding: 10px 15px;">Copy QR</button>
+                    <button class="btn" id="download-qr-btn" style="box-shadow:none; border-radius: 8px; background: #64748b; color: white; font-size: 14px; padding: 10px 15px;">Tải Ảnh</button>
+                </div>
+            </div>
+
             <button class="btn" id="close-modal-btn" style="margin: 0 auto; background: #94a3b8; box-shadow:none;">Đóng</button>
         </div>
     </div>
@@ -370,6 +427,12 @@
 
         const shareModal = document.getElementById('share-modal');
         const finalLinkInput = document.getElementById('final-link-input');
+        const generateQrBtn = document.getElementById('generate-qr-btn');
+        const qrContainer = document.getElementById('qr-container');
+        const qrCanvas = document.getElementById('qr-canvas');
+        const copyQrBtn = document.getElementById('copy-qr-btn');
+        const downloadQrBtn = document.getElementById('download-qr-btn');
+        
         const loadingScreen = document.getElementById('loading-screen');
         const toastEl = document.getElementById('toast-message');
 
@@ -389,6 +452,32 @@
             isFlipped = !isFlipped;
             card.classList.toggle('is-flipped');
             flipText.textContent = isFlipped ? 'Lật sang mặt trước' : 'Lật sang mặt sau';
+        }
+
+        function formatPostmarkDate(timestamp) {
+            const d = new Date(timestamp);
+            const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = months[d.getMonth()];
+            const year = d.getFullYear();
+            const hours = String(d.getHours()).padStart(2, '0');
+            const minutes = String(d.getMinutes()).padStart(2, '0');
+            
+            return {
+                date: `${day} ${month} ${year}`,
+                time: `${hours}:${minutes}`
+            };
+        }
+
+        function applyPostmark(timestamp) {
+            const pmData = formatPostmarkDate(timestamp);
+            document.getElementById('card-pm-date').textContent = pmData.date;
+            document.getElementById('card-pm-time').textContent = pmData.time;
+            document.getElementById('env-pm-date').textContent = pmData.date;
+            document.getElementById('env-pm-time').textContent = pmData.time;
+            
+            document.getElementById('card-postmark').style.display = 'block';
+            document.getElementById('env-postmark').style.display = 'block';
         }
 
         /* --- Event Listeners Lật & Tải Ảnh --- */
@@ -468,6 +557,11 @@
             stampModal.classList.remove('active');
             if(isFlipped) toggleFlip(); // Xoay về mặt trước
 
+            // Lấy thời gian hiện tại và đóng dấu bưu điện
+            const sendTimestamp = Date.now();
+            window.postcardSendTimestamp = sendTimestamp; // Lưu tạm để truyền vào Firebase
+            applyPostmark(sendTimestamp);
+
             // Hiện các mảnh phong bì
             envParts.forEach(el => { el.style.display = 'block'; });
             envFlap.style.transform = 'rotateX(180deg)'; // Nắp đang mở
@@ -511,7 +605,7 @@
                     image: currentBase64,
                     text: messageText.value,
                     stamp: currentStampBase64,
-                    createdAt: Date.now()
+                    createdAt: window.postcardSendTimestamp || Date.now()
                 });
 
                 const baseUrl = window.location.href.split('?')[0];
@@ -526,6 +620,7 @@
                 } catch (e) { console.log("Không rút gọn được, dùng link gốc"); }
 
                 finalLinkInput.value = finalUrl;
+                qrContainer.style.display = 'none'; // Đặt lại trạng thái QR khi mở thẻ mới
                 shareModal.classList.add('active');
                 
                 mainControls.style.display = 'flex';
@@ -548,6 +643,46 @@
             e.target.textContent = "Đã Copy!";
             setTimeout(() => { e.target.textContent = "Copy"; }, 2000);
         });
+
+        // Tạo & Hiển thị QR Code
+        generateQrBtn.addEventListener('click', () => {
+            if (qrContainer.style.display === 'flex') {
+                qrContainer.style.display = 'none';
+            } else {
+                qrContainer.style.display = 'flex';
+                QRCode.toCanvas(qrCanvas, finalLinkInput.value, {
+                    width: 200,
+                    margin: 2,
+                    color: { dark: '#1e3a8a', light: '#ffffff' }
+                }, function (error) {
+                    if (error) console.error(error);
+                });
+            }
+        });
+
+        // Copy QR Code
+        copyQrBtn.addEventListener('click', async (e) => {
+            try {
+                qrCanvas.toBlob(async (blob) => {
+                    const item = new ClipboardItem({ "image/png": blob });
+                    await navigator.clipboard.write([item]);
+                    e.target.textContent = "Đã Copy!";
+                    setTimeout(() => { e.target.textContent = "Copy QR"; }, 2000);
+                });
+            } catch (err) {
+                console.error("Không thể copy ảnh:", err);
+                showToast("Trình duyệt không hỗ trợ copy ảnh trực tiếp!");
+            }
+        });
+
+        // Tải QR Code
+        downloadQrBtn.addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'postcard-qr.png';
+            link.href = qrCanvas.toDataURL("image/png");
+            link.click();
+        });
+
         document.getElementById('close-modal-btn').addEventListener('click', () => shareModal.classList.remove('active'));
 
         // --- LOGIC NGƯỜI NHẬN MỞ THƯ ---
@@ -575,6 +710,10 @@
                         if (data.image) { displayImage.src = data.image; displayImage.style.display = 'block'; }
                         if (data.text) { messageText.value = data.text; }
                         stampDisplayImg.src = data.stamp || stampOptions[0].getAttribute('data-src');
+
+                        if (data.createdAt) {
+                            applyPostmark(data.createdAt);
+                        }
 
                         // Cài đặt giao diện Phong bì đã đóng kín
                         envParts.forEach(el => { el.style.display = 'block'; });
