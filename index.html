@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Postcard</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Dancing+Script:wght@700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Dancing+Script:wght@700&family=Quicksand:wght@400;600;700&family=Mali:wght@400;600&display=swap');
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Courier Prime', monospace;
+            font-family: 'Quicksand', sans-serif;
             background-color: #dbeafe; 
             background-image: linear-gradient(135deg, #eff6ff 0%, #bfdbfe 100%);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -20,7 +20,7 @@
         .header-title {
             color: #1e3a8a;
             text-align: center; margin-bottom: 15px; font-size: 32px;
-            font-family: 'Courier Prime', monospace; font-weight: bold;
+            font-family: 'Quicksand', sans-serif; font-weight: 700;
             letter-spacing: 2px;
         }
 
@@ -132,7 +132,7 @@
         }
         .writing-area {
             width: 100%; flex-grow: 1; background: transparent; border: none; resize: none;
-            font-family: 'Courier Prime', monospace; font-size: 18px; line-height: 2em;
+            font-family: 'Mali', cursive; font-size: 18px; line-height: 2em;
             color: #3b352b; outline: none;
             background-image: linear-gradient(transparent, transparent calc(2em - 1px), #d8d0bf 0px);
             background-size: 100% 2em; cursor: text;
@@ -160,7 +160,7 @@
         .controls { display: flex; gap: 15px; z-index: 30; flex-wrap: wrap; justify-content: center; }
         .btn {
             background-color: #4a4135; color: #f4f0e6; border: none; padding: 12px 25px;
-            font-family: 'Courier Prime', monospace; font-size: 16px; cursor: pointer;
+            font-family: 'Quicksand', sans-serif; font-weight: 600; font-size: 16px; cursor: pointer;
             border-radius: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             transition: all 0.2s; display: flex; align-items: center; gap: 8px;
         }
@@ -321,7 +321,25 @@
             <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             Tự làm bưu thiếp mới
         </button>
+        <button class="btn btn-action" id="inline-copy-btn" style="display: none; background: #3b82f6;">
+            <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+            Copy Link
+        </button>
+        <button class="btn" id="inline-qr-btn" style="display: none; background: #475569; color: white;">
+            <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+            Tạo QR
+        </button>
     </div>
+
+    <!-- Container cho QR Code -->
+    <div id="inline-qr-container" style="display: none; flex-direction: column; align-items: center; margin-top: 20px; z-index: 30;">
+        <canvas id="qr-canvas" style="margin-bottom: 10px; border: 4px solid #fff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></canvas>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn btn-action" id="copy-qr-btn" style="box-shadow:none; border-radius: 8px; font-size: 14px; padding: 10px 15px;">Copy QR</button>
+            <button class="btn" id="download-qr-btn" style="box-shadow:none; border-radius: 8px; background: #64748b; color: white; font-size: 14px; padding: 10px 15px;">Tải Ảnh</button>
+        </div>
+    </div>
+    <input type="text" id="final-link-input" style="position: absolute; left: -9999px;" readonly>
 
     <div class="loading" id="loading-screen">
         <div class="spinner"></div>
@@ -354,28 +372,7 @@
         </div>
     </div>
 
-    <!-- MODAL LINK -->
-    <div class="modal-overlay" id="share-modal">
-        <div class="modal-content">
-            <h3 style="font-size: 20px; color: #1e3a8a; margin-bottom: 10px;">✨ Đã đóng gói xong! ✨</h3>
-            <p style="font-size: 14px; color: #64748b;">Copy đường link dưới đây gửi cho người nhận nhé. Khi mở ra, họ sẽ được tự tay bóc phong bì!</p>
-            <div class="link-input-container">
-                <input type="text" id="final-link-input" class="link-input" readonly>
-                <button class="btn btn-action" id="copy-modal-btn" style="box-shadow:none; border-radius: 8px; padding: 12px 15px;">Copy</button>
-                <button class="btn" id="generate-qr-btn" style="box-shadow:none; border-radius: 8px; background: #475569; color: white; padding: 12px 15px;">QR</button>
-            </div>
-            
-            <div id="qr-container" style="display: none; flex-direction: column; align-items: center; margin: 15px 0;">
-                <canvas id="qr-canvas" style="margin-bottom: 10px; border: 4px solid #fff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></canvas>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn btn-action" id="copy-qr-btn" style="box-shadow:none; border-radius: 8px; font-size: 14px; padding: 10px 15px;">Copy QR</button>
-                    <button class="btn" id="download-qr-btn" style="box-shadow:none; border-radius: 8px; background: #64748b; color: white; font-size: 14px; padding: 10px 15px;">Tải Ảnh</button>
-                </div>
-            </div>
 
-            <button class="btn" id="close-modal-btn" style="margin: 0 auto; background: #94a3b8; box-shadow:none;">Đóng</button>
-        </div>
-    </div>
 
     <!-- SCRIPTS -->
     <script type="module">
@@ -425,10 +422,10 @@
         const stampUpload = document.getElementById('stamp-upload');
         const confirmPackBtn = document.getElementById('confirm-pack-btn');
 
-        const shareModal = document.getElementById('share-modal');
         const finalLinkInput = document.getElementById('final-link-input');
-        const generateQrBtn = document.getElementById('generate-qr-btn');
-        const qrContainer = document.getElementById('qr-container');
+        const inlineQrContainer = document.getElementById('inline-qr-container');
+        const inlineQrBtn = document.getElementById('inline-qr-btn');
+        const inlineCopyBtn = document.getElementById('inline-copy-btn');
         const qrCanvas = document.getElementById('qr-canvas');
         const copyQrBtn = document.getElementById('copy-qr-btn');
         const downloadQrBtn = document.getElementById('download-qr-btn');
@@ -620,14 +617,18 @@
                 } catch (e) { console.log("Không rút gọn được, dùng link gốc"); }
 
                 finalLinkInput.value = finalUrl;
-                qrContainer.style.display = 'none'; // Đặt lại trạng thái QR khi mở thẻ mới
-                shareModal.classList.add('active');
+                window.generatedPostcardLink = finalUrl;
                 
                 mainControls.style.display = 'flex';
                 flipBtn.style.display = 'none';
                 packBtn.style.display = 'none';
+                
                 createNewBtn.style.display = 'flex';
-                document.getElementById('main-subtitle').innerText = "Đã gửi thành công!";
+                inlineCopyBtn.style.display = 'flex';
+                inlineQrBtn.style.display = 'flex';
+                inlineQrContainer.style.display = 'none'; // reset state
+                
+                document.getElementById('main-subtitle').innerHTML = "Đã gửi thành công!<br>Hãy copy link hoặc tạo mã QR gửi cho người nhận nhé.";
 
             } catch (error) {
                 console.error("Lỗi lưu:", error);
@@ -638,18 +639,19 @@
         }
 
         // Copy Link
-        document.getElementById('copy-modal-btn').addEventListener('click', (e) => {
+        inlineCopyBtn.addEventListener('click', (e) => {
             finalLinkInput.select(); document.execCommand('copy');
-            e.target.textContent = "Đã Copy!";
-            setTimeout(() => { e.target.textContent = "Copy"; }, 2000);
+            const originalContent = e.currentTarget.innerHTML;
+            e.currentTarget.innerHTML = `<svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Đã Copy!`;
+            setTimeout(() => { e.currentTarget.innerHTML = originalContent; }, 2000);
         });
 
         // Tạo & Hiển thị QR Code
-        generateQrBtn.addEventListener('click', () => {
-            if (qrContainer.style.display === 'flex') {
-                qrContainer.style.display = 'none';
+        inlineQrBtn.addEventListener('click', () => {
+            if (inlineQrContainer.style.display === 'flex') {
+                inlineQrContainer.style.display = 'none';
             } else {
-                qrContainer.style.display = 'flex';
+                inlineQrContainer.style.display = 'flex';
                 QRCode.toCanvas(qrCanvas, finalLinkInput.value, {
                     width: 200,
                     margin: 2,
@@ -659,8 +661,6 @@
                 });
             }
         });
-
-        // Copy QR Code
         copyQrBtn.addEventListener('click', async (e) => {
             try {
                 qrCanvas.toBlob(async (blob) => {
@@ -682,8 +682,6 @@
             link.href = qrCanvas.toDataURL("image/png");
             link.click();
         });
-
-        document.getElementById('close-modal-btn').addEventListener('click', () => shareModal.classList.remove('active'));
 
         // --- LOGIC NGƯỜI NHẬN MỞ THƯ ---
         window.addEventListener('DOMContentLoaded', async () => {
