@@ -45,7 +45,7 @@
         .card {
             width: 100%; height: 100%; position: absolute;
             transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            transform-style: preserve-3d; cursor: pointer;
+            transform-style: preserve-3d;
         }
         .card.is-flipped { transform: rotateY(180deg); }
 
@@ -403,17 +403,7 @@
             }
         });
 
-        // Bấm vào các khu vực còn lại của bưu thiếp để lật
-        card.addEventListener('click', (e) => {
-            if (isViewingMode) return; // Không cho lật thẻ khi phong bì chưa được mở
-            if (e.target.id === 'image-upload') return; // Chặn sự kiện click lan ra từ thẻ input file (gây lật thẻ trên điện thoại)
-
-            // Không lật nếu bấm vào vùng viết chữ
-            if (e.target.tagName === 'TEXTAREA') return;
-            // Nếu click lan ra từ uploadTrigger (khung polaroid), chặn lại
-            if (e.target.closest('.polaroid-frame')) return; // Bỏ kiểm tra isViewingMode ở đây để khóa luôn cả khi đang xem
-            toggleFlip();
-        });
+        // Đã tắt tính năng nhấn vào bưu thiếp để lật mặt, bây giờ lật mặt chỉ dùng nút "Lật sang mặt sau".
 
         // Tải ảnh bưu thiếp
         imageUpload.addEventListener('click', (e) => e.stopPropagation());
@@ -614,7 +604,7 @@
             isViewingMode = false;
             scene.style.cursor = "default";
             scene.removeEventListener('click', openEnvelopeFromReceiver);
-            document.getElementById('main-subtitle').innerText = "Chạm vào bưu thiếp để lật mặt sau nhé!";
+            document.getElementById('main-subtitle').innerText = "Chạm vào nút bên dưới để lật mặt sau nhé!";
 
             envFlap.style.transform = 'rotateX(180deg)';
 
