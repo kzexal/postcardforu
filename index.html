@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Postcard</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Dancing+Script:wght@700&display=swap');
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Courier Prime', monospace;
+            background-color: #dbeafe; 
+            background-image: linear-gradient(135deg, #eff6ff 0%, #bfdbfe 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh; padding: 20px; color: #3b352b; overflow-x: hidden;
+        }
+
+        .header-title {
+            color: #1e3a8a;
+            text-align: center; margin-bottom: 15px; font-size: 32px;
+            font-family: 'Courier Prime', monospace; font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            color: #475569; text-align: center; margin-bottom: 30px;
+            font-size: 15px; max-width: 600px;
+        }
+
+        /* --- SCENE & WRAPPER --- */
+        .scene {
+            width: 100%; max-width: 700px; aspect-ratio: 1.4 / 1;
+            perspective: 1500px; position: relative; margin-bottom: 30px;
+        }
+
+        .card-wrapper {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 10;
+            transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        /* --- POSTCARD (Lật 3D) --- */
+        .card {
+            width: 100%; height: 100%; position: absolute;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d; cursor: pointer;
+        }
+        .card.is-flipped { transform: rotateY(180deg); }
+
+        .card-face {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            backface-visibility: hidden; background-color: #f4f0e6;
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,0,0,0.02) 2px, rgba(0,0,0,0.02) 4px);
+            border-radius: 8px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 25px;
+        }
+
+        .card-back {
+            transform: rotateY(180deg); padding: 30px 40px;
+            align-items: flex-start; justify-content: flex-start;
+        }
+
+        /* --- ENVELOPE (Phong bì kín bưng 4 lớp) --- */
+        .env-part {
+            position: absolute; display: none; opacity: 1;
+            transition: opacity 0.5s;
+        }
+        .env-back {
+            inset: 0; background-color: #d8c8b5; z-index: 5; border-radius: 8px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        .env-left {
+            left: 0; top: 0; bottom: 0; width: 50%; background-color: #dfcdb6; z-index: 15;
+            clip-path: polygon(0 0, 100% 50%, 0 100%); border-radius: 8px 0 0 8px;
+        }
+        .env-right {
+            right: 0; top: 0; bottom: 0; width: 50%; background-color: #dfcdb6; z-index: 15;
+            clip-path: polygon(100% 0, 0 50%, 100% 100%); border-radius: 0 8px 8px 0;
+        }
+        .env-bottom {
+            left: 0; right: 0; bottom: 0; height: 60%; background-color: #e8dcc8; z-index: 16;
+            clip-path: polygon(0 100%, 50% 0, 100% 100%); border-radius: 0 0 8px 8px;
+        }
+        .env-flap {
+            top: 0; left: 0; width: 100%; height: 60%; background-color: #decab1; z-index: 20;
+            transform-origin: top; clip-path: polygon(0 0, 50% 100%, 100% 0);
+            transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.1)); border-radius: 8px 8px 0 0;
+        }
+
+        /* --- STAMP (Con Tem) --- */
+        .stamp {
+            position: absolute; top: 20px; right: 20px; width: 80px; height: 95px;
+            background: #fff; padding: 5px; z-index: 25;
+            border: 2px dotted #ccc; display: none;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.15);
+            opacity: 0; transform: scale(3) rotate(-15deg);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .stamp.stamped { opacity: 1; transform: scale(1) rotate(6deg); }
+        .stamp img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* --- UI Bưu thiếp mặt trước --- */
+        .polaroid-frame {
+            background: white; padding: 15px 15px 50px 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); position: relative;
+            width: 90%; height: 90%; display: flex; flex-direction: column; transition: transform 0.3s;
+            cursor: pointer;
+        }
+        .polaroid-frame:hover { transform: scale(1.02) rotate(-1deg); }
+        .washi-tape {
+            position: absolute; top: -12px; left: 50%; transform: translateX(-50%) rotate(-2deg);
+            width: 90px; height: 28px; background-color: rgba(226, 218, 172, 0.85);
+            border: 1px dashed #d1c8a3; z-index: 2;
+        }
+        .image-container {
+            width: 100%; flex-grow: 1; background-color: #eaeaea; border: 2px dashed #ccc;
+            display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;
+        }
+        .image-container img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .polaroid-text {
+            font-family: 'Dancing Script', cursive; font-size: 28px; text-align: center;
+            position: absolute; bottom: 8px; width: 100%; left: 0; color: #5a5040; pointer-events: none;
+        }
+
+        /* --- UI Bưu thiếp mặt sau --- */
+        .back-title {
+            font-size: 18px; color: #7b7161; width: 100%; text-align: center;
+            margin-bottom: 20px; letter-spacing: 2px; pointer-events: none;
+        }
+        .writing-area {
+            width: 100%; flex-grow: 1; background: transparent; border: none; resize: none;
+            font-family: 'Courier Prime', monospace; font-size: 18px; line-height: 2em;
+            color: #3b352b; outline: none;
+            background-image: linear-gradient(transparent, transparent calc(2em - 1px), #d8d0bf 0px);
+            background-size: 100% 2em; cursor: text;
+        }
+        .writing-area::-webkit-scrollbar { width: 6px; }
+        .writing-area::-webkit-scrollbar-thumb { background-color: #c7c1b5; border-radius: 3px; }
+
+        /* --- Controls & Buttons --- */
+        .controls { display: flex; gap: 15px; z-index: 30; flex-wrap: wrap; justify-content: center; }
+        .btn {
+            background-color: #4a4135; color: #f4f0e6; border: none; padding: 12px 25px;
+            font-family: 'Courier Prime', monospace; font-size: 16px; cursor: pointer;
+            border-radius: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.2s; display: flex; align-items: center; gap: 8px;
+        }
+        .btn:hover { background-color: #3b352b; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
+        .btn-action { background-color: #3b82f6; color: #fff; font-weight: bold; }
+        .btn-action:hover { background-color: #2563eb; }
+
+        /* --- Overlay Loading & Toasts --- */
+        .loading {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.8); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; color: #3b82f6;
+            z-index: 999; display: none; backdrop-filter: blur(3px); font-weight: bold;
+        }
+        .spinner {
+            width: 50px; height: 50px; border: 4px solid rgba(59,130,246,0.2);
+            border-top: 4px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .toast-msg {
+            position: fixed; bottom: -80px; left: 50%; transform: translateX(-50%);
+            background: #4a3f35; color: white; padding: 12px 24px; border-radius: 30px;
+            transition: bottom 0.3s ease; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.2); text-align: center;
+        }
+        .toast-msg.show { bottom: 30px; }
+
+        /* --- Modals --- */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex;
+            align-items: center; justify-content: center; z-index: 200; opacity: 0;
+            pointer-events: none; transition: opacity 0.3s; backdrop-filter: blur(3px);
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-content {
+            background: #fff; padding: 30px; border-radius: 16px; width: 90%; max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2); text-align: center;
+        }
+        .link-input-container { display: flex; gap: 10px; margin: 20px 0; }
+        .link-input {
+            flex-grow: 1; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px;
+            font-family: monospace; font-size: 14px; color: #333; background: #f8fafc;
+        }
+
+        /* --- Stamp Selection Modal --- */
+        .stamp-options {
+            display: flex; gap: 15px; justify-content: center; margin: 20px 0; flex-wrap: wrap;
+        }
+        .stamp-opt {
+            width: 70px; height: 85px; border: 2px dotted #ccc; padding: 4px; cursor: pointer;
+            transition: transform 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1); background: #fff;
+        }
+        .stamp-opt:hover { transform: scale(1.1); border-color: #3b82f6; }
+        .stamp-opt.selected { border-color: #3b82f6; border-width: 3px; border-style: solid; transform: scale(1.1); }
+        .stamp-opt img { width: 100%; height: 100%; object-fit: cover; }
+        
+        #custom-stamp-btn {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: #f1f5f9; border: 2px dashed #cbd5e1;
+        }
+        #custom-stamp-btn:hover { background: #e2e8f0; border-color: #94a3b8; }
+    </style>
+</head>
+<body>
+
+    <div class="header-title">Postcard</div>
+    <div class="subtitle" id="main-subtitle">
+        Tải ảnh lên mặt trước, viết lời chúc ở mặt sau, rồi lật thẻ để xem cả hai mặt. Đóng gói và gửi yêu thương!
+    </div>
+
+    <!-- KHUNG CẢNH -->
+    <div class="scene" id="scene">
+        <!-- Phong bì (4 lớp tạo độ kín 100%) -->
+        <div class="env-part env-back" id="env-back"></div>
+
+        <!-- Bưu thiếp -->
+        <div class="card-wrapper" id="card-wrapper">
+            <div class="card" id="postcard">
+                <!-- Mặt trước -->
+                <div class="card-face card-front">
+                    <!-- Khu vực này được bảo vệ, ấn tải ảnh không bị lật thẻ -->
+                    <div class="polaroid-frame" id="upload-trigger">
+                        <div class="washi-tape"></div>
+                        <div class="image-container" id="img-container">
+                            <span class="upload-hint" id="upload-hint">
+                                <svg style="width:24px;height:24px;margin: 0 auto 8px block;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                Nhấn để tải ảnh lên
+                            </span>
+                            <img id="display-image" src="" alt="Hình ảnh của bạn">
+                        </div>
+                        <div class="polaroid-text">Greetings</div>
+                    </div>
+                    <input type="file" id="image-upload" accept="image/*" style="display: none;">
+                </div>
+
+                <!-- Mặt sau -->
+                <div class="card-face card-back">
+                    <div class="back-title">~ thân gửi ~</div>
+                    <textarea class="writing-area" id="message-text" placeholder="Viết những dòng yêu thương ở đây..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phong bì mặt trước & Nắp -->
+        <div class="env-part env-left" id="env-left"></div>
+        <div class="env-part env-right" id="env-right"></div>
+        <div class="env-part env-bottom" id="env-bottom"></div>
+        <div class="env-part env-flap" id="env-flap"></div>
+        
+        <!-- Con tem -->
+        <div class="stamp" id="env-stamp">
+            <img id="stamp-display-img" src="" alt="stamp">
+        </div>
+    </div>
+
+    <!-- ĐIỀU KHIỂN -->
+    <div class="controls" id="main-controls">
+        <button class="btn" id="flip-btn">
+            <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            <span id="flip-text">Lật sang mặt sau</span>
+        </button>
+        <button class="btn btn-action" id="pack-btn">
+            <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+            Đóng gói & Dán tem
+        </button>
+        <button class="btn btn-action" id="create-new-btn" style="display: none;" onclick="window.location.href = window.location.pathname">
+            <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            Tự làm bưu thiếp mới
+        </button>
+    </div>
+
+    <div class="loading" id="loading-screen">
+        <div class="spinner"></div>
+        <p id="loading-text" style="color: #1e3a8a;">Đang xử lý...</p>
+    </div>
+    <div id="toast-message" class="toast-msg">Thông báo</div>
+
+    <!-- MODAL CHỌN TEM -->
+    <div class="modal-overlay" id="stamp-modal">
+        <div class="modal-content">
+            <h3 style="font-size: 20px; color: #1e3a8a; margin-bottom: 10px;">Chọn một con tem</h3>
+            <p style="font-size: 14px; color: #64748b;">Chọn tem mặc định hoặc tải ảnh tem của riêng bạn để dán lên phong bì nhé!</p>
+            
+            <div class="stamp-options" id="stamp-options">
+                <div class="stamp-opt selected" data-src="https://img.freepik.com/free-vector/postage-stamp-with-red-heart_1308-115312.jpg"><img src="https://img.freepik.com/free-vector/postage-stamp-with-red-heart_1308-115312.jpg"></div>
+                <div class="stamp-opt" data-src="https://img.freepik.com/free-vector/colorful-bird-postage-stamp_1308-124976.jpg"><img src="https://img.freepik.com/free-vector/colorful-bird-postage-stamp_1308-124976.jpg"></div>
+                <div class="stamp-opt" data-src="https://img.freepik.com/free-vector/floral-postage-stamp_1308-124316.jpg"><img src="https://img.freepik.com/free-vector/floral-postage-stamp_1308-124316.jpg"></div>
+                <!-- Nút Tải Tem Cá Nhân -->
+                <div class="stamp-opt" id="custom-stamp-btn" title="Tải ảnh tem của bạn">
+                    <div style="font-size: 28px; color: #3b82f6; margin-bottom: 2px;">+</div>
+                    <span style="font-size: 11px; font-weight: bold; text-align: center; color: #64748b;">Tải ảnh<br>của bạn</span>
+                </div>
+            </div>
+            <input type="file" id="stamp-upload" accept="image/*" style="display: none;">
+
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                <button class="btn" style="background:#cbd5e1; color:#333; box-shadow:none;" onclick="document.getElementById('stamp-modal').classList.remove('active')">Hủy</button>
+                <button class="btn btn-action" id="confirm-pack-btn">Dán tem & Gửi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL LINK -->
+    <div class="modal-overlay" id="share-modal">
+        <div class="modal-content">
+            <h3 style="font-size: 20px; color: #1e3a8a; margin-bottom: 10px;">✨ Đã đóng gói xong! ✨</h3>
+            <p style="font-size: 14px; color: #64748b;">Copy đường link dưới đây gửi cho người nhận nhé. Khi mở ra, họ sẽ được tự tay bóc phong bì!</p>
+            <div class="link-input-container">
+                <input type="text" id="final-link-input" class="link-input" readonly>
+                <button class="btn btn-action" id="copy-modal-btn" style="box-shadow:none; border-radius: 8px;">Copy</button>
+            </div>
+            <button class="btn" id="close-modal-btn" style="margin: 0 auto; background: #94a3b8; box-shadow:none;">Đóng</button>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getDatabase, ref, push, set, get, child } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+        const firebaseConfig = {
+            databaseURL: "https://postcard-b5dba-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "postcard-b5dba"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // --- DOM Elements ---
+        const scene = document.getElementById('scene');
+        const cardWrapper = document.getElementById('card-wrapper');
+        const card = document.getElementById('postcard');
+        const flipBtn = document.getElementById('flip-btn');
+        const flipText = document.getElementById('flip-text');
+        
+        // Các lớp phong bì
+        const envBack = document.getElementById('env-back');
+        const envLeft = document.getElementById('env-left');
+        const envRight = document.getElementById('env-right');
+        const envBottom = document.getElementById('env-bottom');
+        const envFlap = document.getElementById('env-flap');
+        const envParts = [envBack, envLeft, envRight, envBottom, envFlap];
+        
+        const envStamp = document.getElementById('env-stamp');
+        const stampDisplayImg = document.getElementById('stamp-display-img');
+
+        // Khung ảnh bưu thiếp
+        const imageUpload = document.getElementById('image-upload');
+        const uploadTrigger = document.getElementById('upload-trigger');
+        const displayImage = document.getElementById('display-image');
+        const uploadHint = document.getElementById('upload-hint');
+        const messageText = document.getElementById('message-text');
+        
+        // Buttons & Modals
+        const packBtn = document.getElementById('pack-btn');
+        const createNewBtn = document.getElementById('create-new-btn');
+        const mainControls = document.getElementById('main-controls');
+        
+        const stampModal = document.getElementById('stamp-modal');
+        const stampOptions = document.querySelectorAll('.stamp-opt:not(#custom-stamp-btn)');
+        const customStampBtn = document.getElementById('custom-stamp-btn');
+        const stampUpload = document.getElementById('stamp-upload');
+        const confirmPackBtn = document.getElementById('confirm-pack-btn');
+
+        const shareModal = document.getElementById('share-modal');
+        const finalLinkInput = document.getElementById('final-link-input');
+        const loadingScreen = document.getElementById('loading-screen');
+        const toastEl = document.getElementById('toast-message');
+
+        // --- State Variables ---
+        let currentBase64 = "";
+        let currentStampBase64 = stampOptions[0].getAttribute('data-src'); // Mặc định tem đầu tiên
+        let isFlipped = false;
+        let isViewingMode = false;
+
+        // --- Utilities ---
+        function showToast(message) {
+            toastEl.innerText = message; toastEl.classList.add('show');
+            setTimeout(() => { toastEl.classList.remove('show'); }, 3000);
+        }
+
+        function toggleFlip() {
+            isFlipped = !isFlipped;
+            card.classList.toggle('is-flipped');
+            flipText.textContent = isFlipped ? 'Lật sang mặt trước' : 'Lật sang mặt sau';
+        }
+
+        // --- Event Listeners Lật & Tải Ảnh ---
+        flipBtn.addEventListener('click', toggleFlip);
+        
+        // KHÓA LẬT THẺ KHI TẢI ẢNH:
+        uploadTrigger.addEventListener('click', (e) => { 
+            if(!isViewingMode) {
+                e.stopPropagation(); // Ngăn sự kiện click lan ra ngoài gây lật thẻ
+                imageUpload.click(); 
+            }
+        });
+
+        // Bấm vào các khu vực còn lại của bưu thiếp để lật
+        card.addEventListener('click', (e) => {
+            // Không lật nếu bấm vào vùng viết chữ
+            if (e.target.tagName === 'TEXTAREA') return;
+            // Nếu click lan ra từ uploadTrigger (khung polaroid), chặn lại
+            if (e.target.closest('.polaroid-frame') && !isViewingMode) return;
+            toggleFlip();
+        });
+
+        // Tải ảnh bưu thiếp
+        imageUpload.addEventListener('change', function(e) { handleImageCompression(e.target.files[0], (base64) => {
+            currentBase64 = base64;
+            displayImage.src = base64; displayImage.style.display = 'block'; uploadHint.style.display = 'none';
+        });});
+
+        function handleImageCompression(file, callback) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width, height = img.height;
+                    const maxSize = 800;
+                    if (width > height && width > maxSize) { height *= maxSize / width; width = maxSize; }
+                    else if (height > maxSize) { width *= maxSize / height; height = maxSize; }
+                    canvas.width = width; canvas.height = height;
+                    canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+                    callback(canvas.toDataURL('image/jpeg', 0.8));
+                }
+                img.src = event.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+
+        // --- LOGIC TEM & ĐÓNG GÓI ---
+        
+        packBtn.addEventListener('click', () => {
+            if (!currentBase64 && !messageText.value.trim()) {
+                showToast("Hãy tải ảnh lên hoặc viết vài lời trước khi đóng gói nhé!");
+                return;
+            }
+            stampModal.classList.add('active');
+        });
+
+        // Chọn tem mặc định
+        stampOptions.forEach(opt => {
+            opt.addEventListener('click', () => {
+                document.querySelectorAll('.stamp-opt').forEach(el => el.classList.remove('selected'));
+                opt.classList.add('selected');
+                currentStampBase64 = opt.getAttribute('data-src');
+            });
+        });
+
+        // Tự tải ảnh TEM CÁ NHÂN
+        customStampBtn.addEventListener('click', () => stampUpload.click());
+        stampUpload.addEventListener('change', function(e) {
+            handleImageCompression(e.target.files[0], (base64) => {
+                currentStampBase64 = base64;
+                customStampBtn.innerHTML = `<img src="${base64}">`;
+                document.querySelectorAll('.stamp-opt').forEach(el => el.classList.remove('selected'));
+                customStampBtn.classList.add('selected');
+                customStampBtn.style.padding = '0'; // Xóa viền padding để ảnh tràn viền tem
+            });
+        });
+
+        // Bấm "Dán tem & Gửi" -> Bắt đầu Animation
+        confirmPackBtn.addEventListener('click', async () => {
+            stampModal.classList.remove('active');
+            if(isFlipped) toggleFlip(); // Xoay về mặt trước
+
+            // Hiện các mảnh phong bì
+            envParts.forEach(el => { el.style.display = 'block'; });
+            envFlap.style.transform = 'rotateX(180deg)'; // Nắp đang mở
+            
+            // Set ảnh tem
+            stampDisplayImg.src = currentStampBase64;
+            envStamp.style.display = 'block';
+            envStamp.classList.remove('stamped'); // Reset
+
+            // Ẩn thanh công cụ
+            mainControls.style.display = 'none';
+            document.getElementById('main-subtitle').innerText = "Đang đóng gói yêu thương...";
+
+            setTimeout(() => {
+                cardWrapper.style.transform = 'translateY(-110%) scale(0.85)';
+                setTimeout(() => {
+                    cardWrapper.style.zIndex = '10'; // Chui vào trong (dưới các nắp env-left/right)
+                    cardWrapper.style.transform = 'translateY(0) scale(0.85)';
+
+                    setTimeout(() => {
+                        envFlap.style.transform = 'rotateX(0deg)'; // Gập nắp kín bưng
+
+                        setTimeout(() => {
+                            envStamp.classList.add('stamped'); // Cộp tem
+                            setTimeout(saveToFirebaseAndShowLink, 1000);
+                        }, 800);
+                    }, 600);
+                }, 600);
+            }, 300); 
+        });
+
+        async function saveToFirebaseAndShowLink() {
+            loadingScreen.style.display = 'flex';
+            document.getElementById('loading-text').textContent = "Đang lưu lên hệ thống...";
+
+            try {
+                const postcardsRef = ref(db, 'postcards');
+                const newPostcardRef = push(postcardsRef);
+                
+                await set(newPostcardRef, {
+                    image: currentBase64,
+                    text: messageText.value,
+                    stamp: currentStampBase64,
+                    createdAt: Date.now()
+                });
+
+                const baseUrl = window.location.href.split('?')[0];
+                let finalUrl = baseUrl + "?id=" + newPostcardRef.key;
+                
+                try {
+                    const response = await fetch(`https://is.gd/create.php?format=json&url=${encodeURIComponent(finalUrl)}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.shorturl) finalUrl = data.shorturl;
+                    }
+                } catch (e) { console.log("Không rút gọn được, dùng link gốc"); }
+
+                finalLinkInput.value = finalUrl;
+                shareModal.classList.add('active');
+                
+                mainControls.style.display = 'flex';
+                flipBtn.style.display = 'none';
+                packBtn.style.display = 'none';
+                createNewBtn.style.display = 'flex';
+                document.getElementById('main-subtitle').innerText = "Đã gửi thành công!";
+
+            } catch (error) {
+                console.error("Lỗi lưu:", error);
+                showToast("Lỗi kết nối. Vui lòng thử lại!");
+            } finally {
+                loadingScreen.style.display = 'none';
+            }
+        }
+
+        // Copy Link
+        document.getElementById('copy-modal-btn').addEventListener('click', (e) => {
+            finalLinkInput.select(); document.execCommand('copy');
+            e.target.textContent = "Đã Copy!";
+            setTimeout(() => { e.target.textContent = "Copy"; }, 2000);
+        });
+        document.getElementById('close-modal-btn').addEventListener('click', () => shareModal.classList.remove('active'));
+
+        // --- LOGIC NGƯỜI NHẬN MỞ THƯ ---
+        window.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const cardId = urlParams.get('id');
+
+            if (cardId) {
+                isViewingMode = true;
+                document.getElementById('main-subtitle').innerHTML = "Bạn có 1 bưu thiếp mới.<br><b>Chạm vào phong bì để bóc thư nhé!</b>";
+                
+                packBtn.style.display = 'none';
+                flipBtn.style.display = 'none';
+                uploadHint.style.display = 'none';
+                messageText.readOnly = true;
+
+                loadingScreen.style.display = 'flex';
+                document.getElementById('loading-text').textContent = "Đang nhận thư...";
+
+                try {
+                    const snapshot = await get(child(ref(db), `postcards/${cardId}`));
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        
+                        if (data.image) { displayImage.src = data.image; displayImage.style.display = 'block'; }
+                        if (data.text) { messageText.value = data.text; }
+                        stampDisplayImg.src = data.stamp || stampOptions[0].getAttribute('data-src');
+
+                        // Cài đặt giao diện Phong bì đã đóng kín
+                        envParts.forEach(el => { el.style.display = 'block'; });
+                        envFlap.style.transform = 'rotateX(0deg)'; // Nắp đóng
+                        envStamp.style.display = 'block';
+                        envStamp.classList.add('stamped');
+
+                        cardWrapper.style.zIndex = '10';
+                        cardWrapper.style.transform = 'translateY(0) scale(0.85)';
+
+                        scene.style.cursor = "pointer";
+                        scene.addEventListener('click', openEnvelopeFromReceiver);
+
+                    } else {
+                        showToast("Bưu thiếp không tồn tại!");
+                    }
+                } catch (error) {
+                    showToast("Lỗi tải bưu thiếp.");
+                } finally {
+                    loadingScreen.style.display = 'none';
+                }
+            }
+        });
+
+        function openEnvelopeFromReceiver() {
+            if(!isViewingMode) return;
+            isViewingMode = false;
+            scene.style.cursor = "default";
+            scene.removeEventListener('click', openEnvelopeFromReceiver);
+            document.getElementById('main-subtitle').innerText = "Chạm vào bưu thiếp để lật mặt sau nhé!";
+
+            envFlap.style.transform = 'rotateX(180deg)';
+
+            setTimeout(() => {
+                cardWrapper.style.transform = 'translateY(-110%) scale(0.85)';
+
+                setTimeout(() => {
+                    envParts.forEach(el => el.style.opacity = '0');
+                    envStamp.style.opacity = '0';
+
+                    cardWrapper.style.zIndex = '30';
+                    cardWrapper.style.transform = 'translateY(0) scale(1)';
+
+                    setTimeout(() => {
+                        envParts.forEach(el => el.style.display = 'none');
+                        envStamp.style.display = 'none';
+                        
+                        createNewBtn.style.display = 'flex';
+                        flipBtn.style.display = 'flex';
+                        
+                        setTimeout(toggleFlip, 500);
+                    }, 800);
+                }, 600);
+            }, 600);
+        }
+    </script>
+</body>
+</html>
