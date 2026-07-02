@@ -289,9 +289,9 @@
             <p style="font-size: 14px; color: #64748b;">Chọn tem mặc định hoặc tải ảnh tem của riêng bạn để dán lên phong bì nhé!</p>
             
             <div class="stamp-options" id="stamp-options">
-                <div class="stamp-opt selected" data-src="https://img.freepik.com/free-vector/postage-stamp-with-red-heart_1308-115312.jpg"><img src="https://img.freepik.com/free-vector/postage-stamp-with-red-heart_1308-115312.jpg"></div>
-                <div class="stamp-opt" data-src="https://img.freepik.com/free-vector/colorful-bird-postage-stamp_1308-124976.jpg"><img src="https://img.freepik.com/free-vector/colorful-bird-postage-stamp_1308-124976.jpg"></div>
-                <div class="stamp-opt" data-src="https://img.freepik.com/free-vector/floral-postage-stamp_1308-124316.jpg"><img src="https://img.freepik.com/free-vector/floral-postage-stamp_1308-124316.jpg"></div>
+                <div class="stamp-opt selected" data-src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Crect width='100' height='120' fill='%23fdfbf7'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' dominant-baseline='middle'%3E%E2%9C%88%EF%B8%8F%3C/text%3E%3Ctext x='50' y='105' font-size='14' text-anchor='middle' font-family='monospace' fill='%23333' font-weight='bold'%3EAIR MAIL%3C/text%3E%3C/svg%3E"><img src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Crect width='100' height='120' fill='%23fdfbf7'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' dominant-baseline='middle'%3E%E2%9C%88%EF%B8%8F%3C/text%3E%3Ctext x='50' y='105' font-size='14' text-anchor='middle' font-family='monospace' fill='%23333' font-weight='bold'%3EAIR MAIL%3C/text%3E%3C/svg%3E"></div>
+                <div class="stamp-opt" data-src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Crect width='100' height='120' fill='%23fdfbf7'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%8C%8D%3C/text%3E%3Ctext x='50' y='105' font-size='14' text-anchor='middle' font-family='monospace' fill='%23333' font-weight='bold'%3ETRAVEL%3C/text%3E%3C/svg%3E"><img src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Crect width='100' height='120' fill='%23fdfbf7'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%8C%8D%3C/text%3E%3Ctext x='50' y='105' font-size='14' text-anchor='middle' font-family='monospace' fill='%23333' font-weight='bold'%3ETRAVEL%3C/text%3E%3C/svg%3E"></div>
+                <div class="stamp-opt" data-src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Crect width='100' height='120' fill='%23fdfbf7'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%93%AC%3C/text%3E%3Ctext x='50' y='105' font-size='14' text-anchor='middle' font-family='monospace' fill='%23333' font-weight='bold'%3EPOST%3C/text%3E%3C/svg%3E"><img src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Crect width='100' height='120' fill='%23fdfbf7'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%93%AC%3C/text%3E%3Ctext x='50' y='105' font-size='14' text-anchor='middle' font-family='monospace' fill='%23333' font-weight='bold'%3EPOST%3C/text%3E%3C/svg%3E"></div>
                 <!-- Nút Tải Tem Cá Nhân -->
                 <div class="stamp-opt" id="custom-stamp-btn" title="Tải ảnh tem của bạn">
                     <div style="font-size: 28px; color: #3b82f6; margin-bottom: 2px;">+</div>
@@ -396,7 +396,8 @@
         
         // KHÓA LẬT THẺ KHI TẢI ẢNH:
         uploadTrigger.addEventListener('click', (e) => { 
-            if(!isViewingMode) {
+            const isReceiver = !!new URLSearchParams(window.location.search).get('id');
+            if(!isReceiver) {
                 e.stopPropagation(); // Ngăn sự kiện click lan ra ngoài gây lật thẻ
                 imageUpload.click(); 
             }
@@ -404,6 +405,9 @@
 
         // Bấm vào các khu vực còn lại của bưu thiếp để lật
         card.addEventListener('click', (e) => {
+            if (isViewingMode) return; // Không cho lật thẻ khi phong bì chưa được mở
+            if (e.target.id === 'image-upload') return; // Chặn sự kiện click lan ra từ thẻ input file (gây lật thẻ trên điện thoại)
+
             // Không lật nếu bấm vào vùng viết chữ
             if (e.target.tagName === 'TEXTAREA') return;
             // Nếu click lan ra từ uploadTrigger (khung polaroid), chặn lại
@@ -412,6 +416,7 @@
         });
 
         // Tải ảnh bưu thiếp
+        imageUpload.addEventListener('click', (e) => e.stopPropagation());
         imageUpload.addEventListener('change', function(e) { handleImageCompression(e.target.files[0], (base64) => {
             currentBase64 = base64;
             displayImage.src = base64; displayImage.style.display = 'block'; uploadHint.style.display = 'none';
