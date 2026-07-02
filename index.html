@@ -391,7 +391,7 @@
             flipText.textContent = isFlipped ? 'Lật sang mặt trước' : 'Lật sang mặt sau';
         }
 
-        // --- Event Listeners Lật & Tải Ảnh ---
+        /* --- Event Listeners Lật & Tải Ảnh --- */
         flipBtn.addEventListener('click', toggleFlip);
         
         // KHÓA LẬT THẺ KHI TẢI ẢNH:
@@ -407,7 +407,7 @@
             // Không lật nếu bấm vào vùng viết chữ
             if (e.target.tagName === 'TEXTAREA') return;
             // Nếu click lan ra từ uploadTrigger (khung polaroid), chặn lại
-            if (e.target.closest('.polaroid-frame') && !isViewingMode) return;
+            if (e.target.closest('.polaroid-frame')) return; // Bỏ kiểm tra isViewingMode ở đây để khóa luôn cả khi đang xem
             toggleFlip();
         });
 
@@ -630,7 +630,7 @@
                         createNewBtn.style.display = 'flex';
                         flipBtn.style.display = 'flex';
                         
-                        setTimeout(toggleFlip, 500);
+                        // Xóa dòng setTimeout(toggleFlip, 500); để không lật sau khi mở thư
                     }, 800);
                 }, 600);
             }, 600);
