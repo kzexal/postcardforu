@@ -159,14 +159,13 @@
         /* --- Controls & Buttons --- */
         .controls { display: flex; gap: 15px; z-index: 30; flex-wrap: wrap; justify-content: center; }
         .btn {
-            background-color: #4a4135; color: #f4f0e6; border: none; padding: 12px 25px;
+            background-color: #6667AB; color: #ffffff; border: none; padding: 12px 25px;
             font-family: 'Quicksand', sans-serif; font-weight: 600; font-size: 16px; cursor: pointer;
             border-radius: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             transition: all 0.2s; display: flex; align-items: center; gap: 8px;
         }
-        .btn:hover { background-color: #3b352b; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
-        .btn-action { background-color: #3b82f6; color: #fff; font-weight: bold; }
-        .btn-action:hover { background-color: #2563eb; }
+        .btn:hover { background-color: #555694; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
+        .btn-action { font-weight: bold; }
 
         /* --- Overlay Loading & Toasts --- */
         .loading {
@@ -223,7 +222,7 @@
         }
         #custom-stamp-btn:hover { background: #e2e8f0; border-color: #94a3b8; }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -321,25 +320,33 @@
             <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             Tự làm bưu thiếp mới
         </button>
-        <button class="btn btn-action" id="inline-copy-btn" style="display: none; background: #3b82f6;">
+        <button class="btn btn-action" id="inline-copy-btn" style="display: none;">
             <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
             Copy Link
         </button>
-        <button class="btn" id="inline-qr-btn" style="display: none; background: #475569; color: white;">
+        <button class="btn" id="inline-qr-btn" style="display: none;">
             <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
             Tạo QR
         </button>
     </div>
 
-    <!-- Container cho QR Code -->
-    <div id="inline-qr-container" style="display: none; flex-direction: column; align-items: center; margin-top: 20px; z-index: 30;">
-        <canvas id="qr-canvas" style="margin-bottom: 10px; border: 4px solid #fff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></canvas>
-        <div style="display: flex; gap: 10px;">
-            <button class="btn btn-action" id="copy-qr-btn" style="box-shadow:none; border-radius: 8px; font-size: 14px; padding: 10px 15px;">Copy QR</button>
-            <button class="btn" id="download-qr-btn" style="box-shadow:none; border-radius: 8px; background: #64748b; color: white; font-size: 14px; padding: 10px 15px;">Tải Ảnh</button>
+    <input type="text" id="final-link-input" style="position: absolute; left: -9999px;" readonly>
+
+    <!-- MODAL QR CODE -->
+    <div class="modal-overlay" id="qr-modal">
+        <div class="modal-content" style="max-width: 340px;">
+            <h3 style="font-size: 20px; color: #1e3a8a; margin-bottom: 8px;">📱 Mã QR Bưu Thiếp</h3>
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 16px;">Quét mã để mở bưu thiếp và tự tay bóc phong bì!</p>
+            <div id="qr-code-box" style="display: flex; justify-content: center; margin-bottom: 16px; padding: 12px; background: #f8fafc; border-radius: 12px;"></div>
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                <button class="btn btn-action" id="download-qr-btn" style="box-shadow:none; border-radius: 10px; font-size: 14px; padding: 10px 18px;">
+                    <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Tải QR
+                </button>
+                <button class="btn" id="close-qr-btn" style="box-shadow:none; border-radius: 10px; font-size: 14px; padding: 10px 18px;">Đóng</button>
+            </div>
         </div>
     </div>
-    <input type="text" id="final-link-input" style="position: absolute; left: -9999px;" readonly>
 
     <div class="loading" id="loading-screen">
         <div class="spinner"></div>
@@ -366,7 +373,7 @@
             <input type="file" id="stamp-upload" accept="image/*" style="display: none;">
 
             <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
-                <button class="btn" style="background:#cbd5e1; color:#333; box-shadow:none;" onclick="document.getElementById('stamp-modal').classList.remove('active')">Hủy</button>
+                <button class="btn" style="box-shadow:none;" onclick="document.getElementById('stamp-modal').classList.remove('active')">Hủy</button>
                 <button class="btn btn-action" id="confirm-pack-btn">Dán tem & Gửi</button>
             </div>
         </div>
@@ -423,12 +430,13 @@
         const confirmPackBtn = document.getElementById('confirm-pack-btn');
 
         const finalLinkInput = document.getElementById('final-link-input');
-        const inlineQrContainer = document.getElementById('inline-qr-container');
         const inlineQrBtn = document.getElementById('inline-qr-btn');
         const inlineCopyBtn = document.getElementById('inline-copy-btn');
-        const qrCanvas = document.getElementById('qr-canvas');
-        const copyQrBtn = document.getElementById('copy-qr-btn');
+        const qrModal = document.getElementById('qr-modal');
+        const qrCodeBox = document.getElementById('qr-code-box');
         const downloadQrBtn = document.getElementById('download-qr-btn');
+        const closeQrBtn = document.getElementById('close-qr-btn');
+        let qrInstance = null;
         
         const loadingScreen = document.getElementById('loading-screen');
         const toastEl = document.getElementById('toast-message');
@@ -619,6 +627,10 @@
                 finalLinkInput.value = finalUrl;
                 window.generatedPostcardLink = finalUrl;
                 
+                // Reset QR cũ nếu có
+                qrCodeBox.innerHTML = '';
+                qrInstance = null;
+
                 mainControls.style.display = 'flex';
                 flipBtn.style.display = 'none';
                 packBtn.style.display = 'none';
@@ -626,7 +638,6 @@
                 createNewBtn.style.display = 'flex';
                 inlineCopyBtn.style.display = 'flex';
                 inlineQrBtn.style.display = 'flex';
-                inlineQrContainer.style.display = 'none'; // reset state
                 
                 document.getElementById('main-subtitle').innerHTML = "Đã gửi thành công!<br>Hãy copy link hoặc tạo mã QR gửi cho người nhận nhé.";
 
@@ -646,40 +657,43 @@
             setTimeout(() => { e.currentTarget.innerHTML = originalContent; }, 2000);
         });
 
-        // Tạo & Hiển thị QR Code
+        // Tạo & Hiển thị QR Code trong popup
         inlineQrBtn.addEventListener('click', () => {
-            if (inlineQrContainer.style.display === 'flex') {
-                inlineQrContainer.style.display = 'none';
-            } else {
-                inlineQrContainer.style.display = 'flex';
-                QRCode.toCanvas(qrCanvas, finalLinkInput.value, {
-                    width: 200,
-                    margin: 2,
-                    color: { dark: '#1e3a8a', light: '#ffffff' }
-                }, function (error) {
-                    if (error) console.error(error);
-                });
-            }
+            const url = finalLinkInput.value;
+            if (!url) { showToast('Chưa có link để tạo QR!'); return; }
+
+            // Xóa QR cũ và tạo mới
+            qrCodeBox.innerHTML = '';
+            qrInstance = new QRCode(qrCodeBox, {
+                text: url,
+                width: 220,
+                height: 220,
+                colorDark: '#1e3a8a',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.M
+            });
+
+            qrModal.classList.add('active');
         });
-        copyQrBtn.addEventListener('click', async (e) => {
-            try {
-                qrCanvas.toBlob(async (blob) => {
-                    const item = new ClipboardItem({ "image/png": blob });
-                    await navigator.clipboard.write([item]);
-                    e.target.textContent = "Đã Copy!";
-                    setTimeout(() => { e.target.textContent = "Copy QR"; }, 2000);
-                });
-            } catch (err) {
-                console.error("Không thể copy ảnh:", err);
-                showToast("Trình duyệt không hỗ trợ copy ảnh trực tiếp!");
-            }
-        });
+
+        // Đóng modal QR
+        closeQrBtn.addEventListener('click', () => qrModal.classList.remove('active'));
+        qrModal.addEventListener('click', (e) => { if (e.target === qrModal) qrModal.classList.remove('active'); });
 
         // Tải QR Code
         downloadQrBtn.addEventListener('click', () => {
+            const img = qrCodeBox.querySelector('img');
+            const canvas = qrCodeBox.querySelector('canvas');
             const link = document.createElement('a');
             link.download = 'postcard-qr.png';
-            link.href = qrCanvas.toDataURL("image/png");
+            if (canvas) {
+                link.href = canvas.toDataURL('image/png');
+            } else if (img) {
+                link.href = img.src;
+            } else {
+                showToast('Chưa tạo QR!');
+                return;
+            }
             link.click();
         });
 
