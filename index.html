@@ -325,6 +325,11 @@
             height: 100%;
             object-fit: cover;
             display: none;
+            cursor: grab;
+        }
+
+        .image-container img:active {
+            cursor: grabbing;
         }
 
         .upload-hint {
@@ -333,6 +338,29 @@
             align-items: center;
             color: #64748b;
             font-weight: 600;
+        }
+
+        .drag-hint {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .drag-hint.show {
+            opacity: 1;
         }
 
         .polaroid-text {
@@ -632,6 +660,10 @@
                                 Nhấn để tải ảnh lên
                             </span>
                             <img id="display-image" src="" alt="Hình ảnh của bạn">
+                            <div class="drag-hint" id="drag-hint">
+                                <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path></svg>
+                                Kéo ảnh để căn chỉnh
+                            </div>
                         </div>
                         <div class="polaroid-text">Greetings</div>
                     </div>
@@ -971,9 +1003,96 @@
             }
         });
 
+        // --- DRAG TO PAN LOGIC ---
+        let panX = 50;
+        let panY = 50;
+        let isDraggingImage = false;
+        let dragStartX, dragStartY;
+        let initialPanX, initialPanY;
+        let maxMoveX, maxMoveY;
+        let wasDragging = false;
+
+        function initDrag(e) {
+            if (isViewingMode || !currentBase64) return;
+            const dragHint = document.getElementById('drag-hint');
+            if (dragHint) dragHint.classList.remove('show');
+            const pos = e.touches ? e.touches[0] : e;
+            dragStartX = pos.clientX;
+            dragStartY = pos.clientY;
+            initialPanX = panX;
+            initialPanY = panY;
+            isDraggingImage = true;
+            wasDragging = false;
+
+            const rect = displayImage.getBoundingClientRect();
+            const containerAR = rect.width / rect.height;
+            const imageAR = displayImage.naturalWidth / displayImage.naturalHeight;
+            
+            maxMoveX = 0;
+            maxMoveY = 0;
+            if (imageAR > containerAR) {
+                const scaledWidth = rect.height * imageAR;
+                maxMoveX = scaledWidth - rect.width;
+            } else {
+                const scaledHeight = rect.width / imageAR;
+                maxMoveY = scaledHeight - rect.height;
+            }
+
+            document.addEventListener('mousemove', onDragMove);
+            document.addEventListener('touchmove', onDragMove, {passive: false});
+            document.addEventListener('mouseup', onDragEnd);
+            document.addEventListener('touchend', onDragEnd);
+            
+            if (!e.touches) e.preventDefault(); // prevent native image drag
+        }
+
+        function onDragMove(e) {
+            if (!isDraggingImage) return;
+            const pos = e.touches ? e.touches[0] : e;
+            const dx = pos.clientX - dragStartX;
+            const dy = pos.clientY - dragStartY;
+
+            if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+                wasDragging = true;
+            }
+
+            if (maxMoveX > 0) {
+                let percentChange = -(dx / maxMoveX) * 100;
+                panX = initialPanX + percentChange;
+                panX = Math.max(0, Math.min(100, panX));
+            }
+            if (maxMoveY > 0) {
+                let percentChange = -(dy / maxMoveY) * 100;
+                panY = initialPanY + percentChange;
+                panY = Math.max(0, Math.min(100, panY));
+            }
+
+            displayImage.style.objectPosition = `${panX}% ${panY}%`;
+            
+            if (wasDragging && e.cancelable) e.preventDefault(); // Stop scrolling on mobile if dragging
+        }
+
+        function onDragEnd() {
+            isDraggingImage = false;
+            document.removeEventListener('mousemove', onDragMove);
+            document.removeEventListener('touchmove', onDragMove);
+            document.removeEventListener('mouseup', onDragEnd);
+            document.removeEventListener('touchend', onDragEnd);
+            
+            setTimeout(() => { wasDragging = false; }, 50); 
+        }
+
+        displayImage.addEventListener('mousedown', initDrag);
+        displayImage.addEventListener('touchstart', initDrag, {passive: false});
+
         // KHÓA LẬT THẺ KHI TẢI ẢNH:
         uploadTrigger.addEventListener('click', (e) => {
             const isReceiver = !!new URLSearchParams(window.location.search).get('id');
+            if (wasDragging) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
             if (!isReceiver) {
                 e.stopPropagation(); // Ngăn sự kiện click lan ra ngoài gây lật thẻ
                 imageUpload.click();
@@ -987,7 +1106,20 @@
         imageUpload.addEventListener('change', function (e) {
             handleImageCompression(e.target.files[0], (base64) => {
                 currentBase64 = base64;
-                displayImage.src = base64; displayImage.style.display = 'block'; uploadHint.style.display = 'none';
+                displayImage.src = base64; 
+                displayImage.style.display = 'block'; 
+                uploadHint.style.display = 'none';
+                
+                // Reset pan when a new image is uploaded
+                panX = 50;
+                panY = 50;
+                displayImage.style.objectPosition = `${panX}% ${panY}%`;
+                
+                const dragHint = document.getElementById('drag-hint');
+                if (dragHint) {
+                    dragHint.classList.add('show');
+                    setTimeout(() => dragHint.classList.remove('show'), 4000);
+                }
             });
         });
 
@@ -1065,6 +1197,49 @@
             }, 300);
         });
 
+        // Chọn tem mặc định (SVG inline)
+        stampOptions.forEach(opt => {
+            if (opt.hasAttribute('data-src')) {
+                opt.addEventListener('click', () => {
+                    document.querySelectorAll('.stamp-opt').forEach(el => el.classList.remove('selected'));
+                    opt.classList.add('selected');
+                    currentStampBase64 = opt.getAttribute('data-src');
+                });
+            }
+        });
+
+        // Khởi tạo 2 tem từ file ảnh (chỉ lưu URL, KHÔNG lưu base64 3MB)
+        function initFileStamps() {
+            const fileStamps = [
+                { id: 'stamp-ka', file: './ka.png' },
+                { id: 'stamp-final', file: './final.png' },
+                { id: 'stamp-xanh', file: './xanh.png' }
+            ];
+            for (const { id, file } of fileStamps) {
+                const el = document.getElementById(id);
+                if (!el) continue;
+                el.setAttribute('data-src', file);
+                el.addEventListener('click', () => {
+                    document.querySelectorAll('.stamp-opt').forEach(e => e.classList.remove('selected'));
+                    el.classList.add('selected');
+                    currentStampBase64 = file;
+                });
+            }
+        }
+        initFileStamps();
+
+        // Tự tải ảnh TEM CÁ NHÂN
+        customStampBtn.addEventListener('click', () => stampUpload.click());
+        stampUpload.addEventListener('change', function (e) {
+            handleImageCompression(e.target.files[0], (base64) => {
+                currentStampBase64 = base64;
+                customStampBtn.innerHTML = `<img src="${base64}">`;
+                document.querySelectorAll('.stamp-opt').forEach(el => el.classList.remove('selected'));
+                customStampBtn.classList.add('selected');
+                customStampBtn.style.padding = '0'; // Xóa viền padding để ảnh tràn viền tem
+            }, 150); // CỰC KỲ QUAN TRỌNG: nén tem cá nhân về kích thước siêu nhỏ 150px
+        });
+
         // Bấm "Dán tem & Gửi" -> Bắt đầu Animation
         confirmPackBtn.addEventListener('click', async () => {
             stampModal.classList.remove('active');
@@ -1110,6 +1285,8 @@
                     sender: displaySender.textContent,
                     receiver: displayReceiver.textContent,
                     isPortrait: isPortrait,
+                    panX: panX,
+                    panY: panY,
                     createdAt: window.postcardSendTimestamp || Date.now()
                 });
 
@@ -1206,8 +1383,10 @@
                 isViewingMode = true;
                 document.getElementById('main-subtitle').innerHTML = "Bạn có 1 bưu thiếp mới.<br><b>Chạm vào phong bì để bóc thư nhé!</b>";
 
+                scene.style.opacity = '0'; // Ẩn scene trong lúc load để tránh chớp hình
                 packBtn.style.display = 'none';
                 flipBtn.style.display = 'none';
+                orientationBtn.style.display = 'none';
                 uploadHint.style.display = 'none';
                 messageText.readOnly = true;
 
@@ -1219,7 +1398,13 @@
                     if (snapshot.exists()) {
                         const data = snapshot.val();
 
-                        if (data.image) { displayImage.src = data.image; displayImage.style.display = 'block'; }
+                        if (data.image) { 
+                            displayImage.src = data.image; 
+                            displayImage.style.display = 'block'; 
+                            if (data.panX !== undefined && data.panY !== undefined) {
+                                displayImage.style.objectPosition = `${data.panX}% ${data.panY}%`;
+                            }
+                        }
                         if (data.text) { messageText.value = data.text; }
                         stampDisplayImg.src = data.stamp || stampOptions[0].getAttribute('data-src');
 
@@ -1259,6 +1444,8 @@
                     showToast("Lỗi tải bưu thiếp.");
                 } finally {
                     loadingScreen.style.display = 'none';
+                    scene.style.transition = 'opacity 0.5s ease-in-out';
+                    scene.style.opacity = '1';
                 }
             }
         });
