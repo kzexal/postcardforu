@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,246 +8,605 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Dancing+Script:wght@700&family=Quicksand:wght@400;600;700&family=Mali:wght@400;600&display=swap');
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         /* Luôn dùng light mode dù thiết bị đang bật dark mode */
-        :root { color-scheme: light only; }
+        :root {
+            color-scheme: light only;
+        }
 
         body {
             font-family: 'Quicksand', sans-serif;
             background-color: #dbeafe;
             background-image: linear-gradient(135deg, #eff6ff 0%, #bfdbfe 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            min-height: 100vh; padding: 20px; color: #3b352b; overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: #3b352b;
+            overflow-x: hidden;
         }
 
         .header-title {
             color: #1e3a8a;
-            text-align: center; margin-bottom: 15px; font-size: 32px;
-            font-family: 'Quicksand', sans-serif; font-weight: 700;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 32px;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 700;
             letter-spacing: 2px;
         }
 
         .subtitle {
-            color: #475569; text-align: center; margin-bottom: 30px;
-            font-size: 15px; max-width: 600px;
+            color: #475569;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 15px;
+            max-width: 600px;
         }
 
         /* --- SCENE & WRAPPER --- */
         .scene {
-            width: 100%; max-width: 700px; aspect-ratio: 1.4 / 1;
-            perspective: 1500px; position: relative; margin-bottom: 30px;
+            width: 100%;
+            max-width: 700px;
+            aspect-ratio: 1.4 / 1;
+            perspective: 1500px;
+            position: relative;
+            margin-bottom: 30px;
+            transition: aspect-ratio 0.5s ease, max-width 0.5s ease;
+        }
+
+        .scene.portrait {
+            max-width: 450px;
+            aspect-ratio: 1 / 1.4;
         }
 
         /* Mobile: đặt chiều cao cố định để không bị quá thấp */
         @media (max-width: 500px) {
             .scene {
-                aspect-ratio: unset;
-                height: 320px;
+                aspect-ratio: 1.4 / 1;
+                height: auto;
             }
-            .card-face { padding: 12px; }
-            .card-back { padding: 15px; }
-            .polaroid-frame { padding: 8px 8px 40px 8px; }
-            .writing-area { font-size: 15px; }
-            .btn { font-size: 14px; padding: 10px 18px; }
-            .image-container img { object-fit: contain; }
+            .scene.portrait {
+                aspect-ratio: 1 / 1.4;
+                height: auto;
+            }
+
+            .card-face {
+                padding: 12px;
+            }
+            
+            .card-front {
+                padding: 0;
+            }
+
+            .card-back {
+                padding: 15px;
+            }
+
+            .polaroid-frame {
+                padding: 0;
+            }
+
+            .writing-area {
+                font-size: 15px;
+            }
+
+            .btn {
+                font-size: 14px;
+                padding: 10px 18px;
+            }
+
+            .image-container img {
+                object-fit: contain;
+            }
         }
 
         .card-wrapper {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             z-index: 10;
             transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
         /* --- POSTCARD (Lật 3D) --- */
         .card {
-            width: 100%; height: 100%; position: absolute;
+            width: 100%;
+            height: 100%;
+            position: absolute;
             transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             transform-style: preserve-3d;
         }
-        .card.is-flipped { transform: rotateY(180deg); }
+
+        .card.is-flipped {
+            transform: rotateY(180deg);
+        }
 
         .card-face {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            backface-visibility: hidden; background-color: #f4f0e6;
-            background-image: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,0,0,0.02) 2px, rgba(0,0,0,0.02) 4px);
-            border-radius: 8px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-            display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 25px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            background-color: #f4f0e6;
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0, 0, 0, 0.02) 2px, rgba(0, 0, 0, 0.02) 4px);
+            border-radius: 8px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 25px;
         }
 
         .card-back {
-            transform: rotateY(180deg); padding: 30px 40px;
-            align-items: flex-start; justify-content: flex-start;
+            transform: rotateY(180deg);
+            padding: 30px 40px;
+            align-items: flex-start;
+            justify-content: flex-start;
         }
 
         /* --- ENVELOPE (Phong bì kín bưng 4 lớp) --- */
         .env-part {
-            position: absolute; display: none; opacity: 1;
+            position: absolute;
+            display: none;
+            opacity: 1;
             transition: opacity 0.5s;
         }
+
         .env-back {
-            inset: 0; background-color: #d8c8b5; z-index: 5; border-radius: 8px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            inset: 0;
+            background-color: #d8c8b5;
+            z-index: 5;
+            border-radius: 8px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
         }
+
         .env-left {
-            left: 0; top: 0; bottom: 0; width: 50%; background-color: #dfcdb6; z-index: 15;
-            clip-path: polygon(0 0, 100% 50%, 0 100%); border-radius: 8px 0 0 8px;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 50%;
+            background-color: #dfcdb6;
+            z-index: 15;
+            clip-path: polygon(0 0, 100% 50%, 0 100%);
+            border-radius: 8px 0 0 8px;
         }
+
         .env-right {
-            right: 0; top: 0; bottom: 0; width: 50%; background-color: #dfcdb6; z-index: 15;
-            clip-path: polygon(100% 0, 0 50%, 100% 100%); border-radius: 0 8px 8px 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 50%;
+            background-color: #dfcdb6;
+            z-index: 15;
+            clip-path: polygon(100% 0, 0 50%, 100% 100%);
+            border-radius: 0 8px 8px 0;
         }
+
         .env-bottom {
-            left: 0; right: 0; bottom: 0; height: 60%; background-color: #e8dcc8; z-index: 16;
-            clip-path: polygon(0 100%, 50% 0, 100% 100%); border-radius: 0 0 8px 8px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 60%;
+            background-color: #e8dcc8;
+            z-index: 16;
+            clip-path: polygon(0 100%, 50% 0, 100% 100%);
+            border-radius: 0 0 8px 8px;
         }
+
         .env-flap {
-            top: 0; left: 0; width: 100%; height: 60%; background-color: #decab1; z-index: 20;
-            transform-origin: top; clip-path: polygon(0 0, 50% 100%, 100% 0);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60%;
+            background-color: #decab1;
+            z-index: 20;
+            transform-origin: top;
+            clip-path: polygon(0 0, 50% 100%, 100% 0);
             transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
-            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.1)); border-radius: 8px 8px 0 0;
+            filter: drop-shadow(0 5px 5px rgba(0, 0, 0, 0.1));
+            border-radius: 8px 8px 0 0;
+        }
+
+        .env-front-side {
+            position: absolute;
+            inset: 0;
+            background-color: #dfcdb6;
+            border-radius: 8px;
+            z-index: 21;
+            display: none;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
         }
 
         /* --- STAMP (Con Tem) --- */
         .stamp {
-            position: absolute; top: 20px; right: 20px; width: 80px; height: 95px;
-            background: #fff; padding: 5px; z-index: 25;
-            border: 2px dotted #ccc; display: none;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.15);
-            opacity: 0; transform: scale(3) rotate(-15deg);
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 80px;
+            height: 95px;
+            background: #fff;
+            padding: 5px;
+            z-index: 25;
+            border: 2px dotted #ccc;
+            display: none;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.15);
+            opacity: 0;
+            transform: scale(3) rotate(-15deg);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .stamp.stamped { opacity: 1; transform: scale(1) rotate(6deg); }
-        .stamp img { width: 100%; height: 100%; object-fit: cover; }
+
+        .stamp.stamped {
+            opacity: 1;
+            transform: scale(1) rotate(6deg);
+        }
+
+        .stamp img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* --- Env Address Display --- */
+        .env-address-display {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            z-index: 22;
+            opacity: 0;
+            font-family: 'Mali', cursive;
+            font-size: 16px;
+            color: #3b352b;
+            transform: rotate(-3deg);
+            background: rgba(255, 255, 255, 0.6);
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 2px dashed #a89f91;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .env-address-line {
+            margin-bottom: 4px;
+        }
 
         /* --- UI Bưu thiếp mặt trước --- */
+        .card-front {
+            padding: 0;
+        }
+        
         .polaroid-frame {
-            background: white; padding: 15px 15px 50px 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05); position: relative;
-            width: 90%; height: 90%; display: flex; flex-direction: column; transition: transform 0.3s;
+            background: #fff;
+            padding: 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s;
             cursor: pointer;
+            border-radius: 8px;
+            overflow: hidden;
         }
-        .polaroid-frame:hover { transform: scale(1.02) rotate(-1deg); }
+
+        .polaroid-frame:hover {
+            transform: scale(1.02);
+        }
+
         .washi-tape {
-            position: absolute; top: -12px; left: 50%; transform: translateX(-50%) rotate(-2deg);
-            width: 90px; height: 28px; background-color: rgba(226, 218, 172, 0.85);
-            border: 1px dashed #d1c8a3; z-index: 2;
+            display: none;
         }
+
         .image-container {
-            width: 100%; flex-grow: 1; background-color: #eaeaea; border: 2px dashed #ccc;
-            display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;
+            width: 100%;
+            height: 100%;
+            background-color: #eaeaea;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
         }
-        .image-container img { width: 100%; height: 100%; object-fit: cover; display: none; }
+
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .upload-hint {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #64748b;
+            font-weight: 600;
+        }
+
         .polaroid-text {
-            font-family: 'Dancing Script', cursive; font-size: 28px; text-align: center;
-            position: absolute; bottom: 8px; width: 100%; left: 0; color: #5a5040; pointer-events: none;
+            display: none;
         }
 
         /* --- UI Bưu thiếp mặt sau --- */
         .back-title {
-            font-size: 18px; color: #7b7161; width: 100%; text-align: center;
-            margin-bottom: 20px; letter-spacing: 2px; pointer-events: none;
+            font-size: 18px;
+            color: #7b7161;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            pointer-events: none;
         }
+
         .writing-area {
-            width: 100%; flex-grow: 1; background: transparent; border: none; resize: none;
-            font-family: 'Mali', cursive; font-size: 18px; line-height: 2em;
-            color: #3b352b; outline: none;
+            width: 100%;
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            resize: none;
+            font-family: 'Mali', cursive;
+            font-size: 18px;
+            line-height: 2em;
+            color: #3b352b;
+            outline: none;
             background-image: linear-gradient(transparent, transparent calc(2em - 1px), #d8d0bf 0px);
-            background-size: 100% 2em; cursor: text;
+            background-size: 100% 2em;
+            cursor: text;
         }
-        .writing-area::-webkit-scrollbar { width: 6px; }
-        .writing-area::-webkit-scrollbar-thumb { background-color: #c7c1b5; border-radius: 3px; }
+
+        .writing-area::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .writing-area::-webkit-scrollbar-thumb {
+            background-color: #c7c1b5;
+            border-radius: 3px;
+        }
 
         /* --- Postmark (Dấu bưu điện) --- */
         .postmark {
-            position: absolute; pointer-events: none;
-            opacity: 0.65; mix-blend-mode: multiply;
-            display: none; z-index: 5;
+            position: absolute;
+            pointer-events: none;
+            opacity: 0.65;
+            mix-blend-mode: multiply;
+            display: none;
+            z-index: 5;
         }
-        .postmark svg { width: 100%; height: 100%; }
+
+        .postmark svg {
+            width: 100%;
+            height: 100%;
+        }
+
         #card-postmark {
-            top: 15px; right: 20px; width: 150px; height: 67px;
+            top: 15px;
+            right: 20px;
+            width: 150px;
+            height: 67px;
             transform: rotate(5deg);
         }
+
         #env-postmark {
-            top: 50%; left: 50%; width: 160px; height: 72px;
+            top: 50%;
+            left: 50%;
+            width: 160px;
+            height: 72px;
             transform: translate(-30%, -50%) rotate(-8deg);
         }
 
         /* --- Controls & Buttons --- */
-        .controls { display: flex; gap: 15px; z-index: 30; flex-wrap: wrap; justify-content: center; }
-        .btn {
-            background-color: #6667AB; color: #ffffff; border: none; padding: 12px 25px;
-            font-family: 'Quicksand', sans-serif; font-weight: 600; font-size: 16px; cursor: pointer;
-            border-radius: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            transition: all 0.2s; display: flex; align-items: center; gap: 8px;
+        .controls {
+            display: flex;
+            gap: 15px;
+            z-index: 30;
+            flex-wrap: wrap;
+            justify-content: center;
         }
-        .btn:hover { background-color: #555694; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
-        .btn-action { font-weight: bold; }
+
+        .btn {
+            background-color: #6667AB;
+            color: #ffffff;
+            border: none;
+            padding: 12px 25px;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 30px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background-color: #555694;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-action {
+            font-weight: bold;
+        }
 
         /* --- Overlay Loading & Toasts --- */
         .loading {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255,255,255,0.8); display: flex; flex-direction: column;
-            align-items: center; justify-content: center; color: #3b82f6;
-            z-index: 999; display: none; backdrop-filter: blur(3px); font-weight: bold;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #3b82f6;
+            z-index: 999;
+            display: none;
+            backdrop-filter: blur(3px);
+            font-weight: bold;
         }
+
         .spinner {
-            width: 50px; height: 50px; border: 4px solid rgba(59,130,246,0.2);
-            border-top: 4px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px;
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(59, 130, 246, 0.2);
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
 
         .toast-msg {
-            position: fixed; bottom: -80px; left: 50%; transform: translateX(-50%);
-            background: #4a3f35; color: white; padding: 12px 24px; border-radius: 30px;
-            transition: bottom 0.3s ease; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.2); text-align: center;
+            position: fixed;
+            bottom: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4a3f35;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            transition: bottom 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            text-align: center;
         }
-        .toast-msg.show { bottom: 30px; }
+
+        .toast-msg.show {
+            bottom: 30px;
+        }
 
         /* --- Modals --- */
         .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex;
-            align-items: center; justify-content: center; z-index: 200; opacity: 0;
-            pointer-events: none; transition: opacity 0.3s; backdrop-filter: blur(3px);
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            backdrop-filter: blur(3px);
         }
-        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
         .modal-content {
-            background: #fff; padding: 30px; border-radius: 16px; width: 90%; max-width: 500px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2); text-align: center;
+            background: #fff;
+            padding: 30px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            text-align: center;
         }
-        .link-input-container { display: flex; gap: 10px; margin: 20px 0; }
+
+        .link-input-container {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
         .link-input {
-            flex-grow: 1; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px;
-            font-family: monospace; font-size: 14px; color: #333; background: #f8fafc;
+            flex-grow: 1;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            color: #333;
+            background: #f8fafc;
         }
 
         /* --- Stamp Selection Modal --- */
         .stamp-options {
-            display: flex; gap: 15px; justify-content: center; margin: 20px 0; flex-wrap: wrap;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
         }
+
         .stamp-opt {
-            width: 70px; height: 85px; border: 2px dotted #ccc; padding: 4px; cursor: pointer;
-            transition: transform 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1); background: #fff;
+            width: 70px;
+            height: 85px;
+            border: 2px dotted #ccc;
+            padding: 4px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            background: #fff;
         }
-        .stamp-opt:hover { transform: scale(1.1); border-color: #3b82f6; }
-        .stamp-opt.selected { border-color: #3b82f6; border-width: 3px; border-style: solid; transform: scale(1.1); }
-        .stamp-opt img { width: 100%; height: 100%; object-fit: cover; }
-        
+
+        .stamp-opt:hover {
+            transform: scale(1.1);
+            border-color: #3b82f6;
+        }
+
+        .stamp-opt.selected {
+            border-color: #3b82f6;
+            border-width: 3px;
+            border-style: solid;
+            transform: scale(1.1);
+        }
+
+        .stamp-opt img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
         #custom-stamp-btn {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background: #f1f5f9; border: 2px dashed #cbd5e1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #f1f5f9;
+            border: 2px dashed #cbd5e1;
         }
-        #custom-stamp-btn:hover { background: #e2e8f0; border-color: #94a3b8; }
+
+        #custom-stamp-btn:hover {
+            background: #e2e8f0;
+            border-color: #94a3b8;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 </head>
+
 <body>
 
     <div class="header-title">Postcard</div>
     <div class="subtitle" id="main-subtitle">
-        Tải ảnh lên mặt trước, viết lời chúc ở mặt sau, rồi lật thẻ để xem cả hai mặt. 
-        Đóng gói và gửi yêu thương!
+        Tải ảnh lên mặt trước, viết lời chúc ở mặt sau.<br>(Đóng gói và gửi yêu thương đi nhé!)
     </div>
 
     <!-- KHUNG CẢNH -->
@@ -264,7 +624,11 @@
                         <div class="washi-tape"></div>
                         <div class="image-container" id="img-container">
                             <span class="upload-hint" id="upload-hint">
-                                <svg style="width:24px;height:24px;margin: 0 auto 8px block;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                <svg style="width:24px;height:24px;margin: 0 auto 8px block;" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                                </svg>
                                 Nhấn để tải ảnh lên
                             </span>
                             <img id="display-image" src="" alt="Hình ảnh của bạn">
@@ -284,15 +648,21 @@
                                 <path d="M 80 50 Q 95 35 110 50 T 140 50 T 170 50 T 200 50" />
                                 <path d="M 80 65 Q 95 50 110 65 T 140 65 T 170 65 T 200 65" />
                             </g>
-                            <circle cx="45" cy="45" r="40" stroke="#444" stroke-width="2" fill="none" opacity="0.7"/>
-                            <circle cx="45" cy="45" r="37" stroke="#444" stroke-width="1.2" fill="none" opacity="0.7"/>
-                            <text x="45" y="30" font-size="12" font-weight="bold" text-anchor="middle" font-family="'Courier Prime', monospace" fill="#444" opacity="0.8">POSTAGE</text>
-                            <text x="45" y="49" font-size="10" font-weight="bold" text-anchor="middle" font-family="'Courier Prime', monospace" fill="#444" opacity="0.8" id="card-pm-date">--</text>
-                            <text x="45" y="66" font-size="10" font-weight="bold" text-anchor="middle" font-family="'Courier Prime', monospace" fill="#444" opacity="0.8" id="card-pm-time">--</text>
+                            <circle cx="45" cy="45" r="40" stroke="#444" stroke-width="2" fill="none" opacity="0.7" />
+                            <circle cx="45" cy="45" r="37" stroke="#444" stroke-width="1.2" fill="none" opacity="0.7" />
+                            <text x="45" y="30" font-size="12" font-weight="bold" text-anchor="middle"
+                                font-family="'Courier Prime', monospace" fill="#444" opacity="0.8">POSTAGE</text>
+                            <text x="45" y="49" font-size="10" font-weight="bold" text-anchor="middle"
+                                font-family="'Courier Prime', monospace" fill="#444" opacity="0.8"
+                                id="card-pm-date">--</text>
+                            <text x="45" y="66" font-size="10" font-weight="bold" text-anchor="middle"
+                                font-family="'Courier Prime', monospace" fill="#444" opacity="0.8"
+                                id="card-pm-time">--</text>
                         </svg>
                     </div>
                     <div class="back-title">~ thân gửi ~</div>
-                    <textarea class="writing-area" id="message-text" placeholder="Viết những dòng yêu thương ở đây..."></textarea>
+                    <textarea class="writing-area" id="message-text"
+                        placeholder="Viết những dòng yêu thương ở đây..."></textarea>
                 </div>
             </div>
         </div>
@@ -302,48 +672,82 @@
         <div class="env-part env-right" id="env-right"></div>
         <div class="env-part env-bottom" id="env-bottom"></div>
         <div class="env-part env-flap" id="env-flap"></div>
-        
-        <!-- Con tem -->
-        <div class="stamp" id="env-stamp">
-            <img id="stamp-display-img" src="" alt="stamp">
-            <div class="postmark" id="env-postmark">
-                <svg viewBox="0 0 200 90">
-                    <g stroke="#444" fill="none" stroke-width="1.5" opacity="0.7">
-                        <path d="M 80 20 Q 95 5 110 20 T 140 20 T 170 20 T 200 20" />
-                        <path d="M 80 35 Q 95 20 110 35 T 140 35 T 170 35 T 200 35" />
-                        <path d="M 80 50 Q 95 35 110 50 T 140 50 T 170 50 T 200 50" />
-                        <path d="M 80 65 Q 95 50 110 65 T 140 65 T 170 65 T 200 65" />
-                    </g>
-                    <circle cx="45" cy="45" r="40" stroke="#444" stroke-width="2" fill="none" opacity="0.7"/>
-                    <circle cx="45" cy="45" r="37" stroke="#444" stroke-width="1.2" fill="none" opacity="0.7"/>
-                    <text x="45" y="30" font-size="12" font-weight="bold" text-anchor="middle" font-family="'Courier Prime', monospace" fill="#444" opacity="0.8">POSTAGE</text>
-                    <text x="45" y="49" font-size="10" font-weight="bold" text-anchor="middle" font-family="'Courier Prime', monospace" fill="#444" opacity="0.8" id="env-pm-date">--</text>
-                    <text x="45" y="66" font-size="10" font-weight="bold" text-anchor="middle" font-family="'Courier Prime', monospace" fill="#444" opacity="0.8" id="env-pm-time">--</text>
-                </svg>
+
+        <!-- Phong bì mặt phẳng để dán tem -->
+        <div class="env-front-side" id="env-front-side">
+            <div class="env-address-display" id="env-address-display">
+                <div class="env-address-line"><strong>To:</strong> <span id="display-receiver"></span></div>
+                <div class="env-address-line"><strong>From:</strong> <span id="display-sender"></span></div>
+            </div>
+
+            <!-- Con tem -->
+            <div class="stamp" id="env-stamp" style="display: block; opacity: 0;">
+                <img id="stamp-display-img" src="" alt="stamp">
+                <div class="postmark" id="env-postmark" style="display: block;">
+                    <svg viewBox="0 0 200 90">
+                        <g stroke="#444" fill="none" stroke-width="1.5" opacity="0.7">
+                            <path d="M 80 20 Q 95 5 110 20 T 140 20 T 170 20 T 200 20" />
+                            <path d="M 80 35 Q 95 20 110 35 T 140 35 T 170 35 T 200 35" />
+                            <path d="M 80 50 Q 95 35 110 50 T 140 50 T 170 50 T 200 50" />
+                            <path d="M 80 65 Q 95 50 110 65 T 140 65 T 170 65 T 200 65" />
+                        </g>
+                        <circle cx="45" cy="45" r="40" stroke="#444" stroke-width="2" fill="none" opacity="0.7" />
+                        <circle cx="45" cy="45" r="37" stroke="#444" stroke-width="1.2" fill="none" opacity="0.7" />
+                        <text x="45" y="30" font-size="12" font-weight="bold" text-anchor="middle"
+                            font-family="'Courier Prime', monospace" fill="#444" opacity="0.8">POSTAGE</text>
+                        <text x="45" y="49" font-size="10" font-weight="bold" text-anchor="middle"
+                            font-family="'Courier Prime', monospace" fill="#444" opacity="0.8" id="env-pm-date">--</text>
+                        <text x="45" y="66" font-size="10" font-weight="bold" text-anchor="middle"
+                            font-family="'Courier Prime', monospace" fill="#444" opacity="0.8" id="env-pm-time">--</text>
+                    </svg>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- ĐIỀU KHIỂN -->
     <div class="controls" id="main-controls">
+        <button class="btn" id="orientation-btn">
+            <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+            <span id="orientation-text">Xoay Dọc</span>
+        </button>
         <button class="btn" id="flip-btn">
-            <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                </path>
+            </svg>
             <span id="flip-text">Lật sang mặt sau</span>
         </button>
         <button class="btn btn-action" id="pack-btn">
-            <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-            Đóng gói & Dán tem
+            <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                </path>
+            </svg>
+            Đóng gói
         </button>
-        <button class="btn btn-action" id="create-new-btn" style="display: none;" onclick="window.location.href = window.location.pathname">
-            <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+        <button class="btn btn-action" id="create-new-btn" style="display: none;"
+            onclick="window.location.href = window.location.pathname">
+            <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
             Tự làm bưu thiếp mới
         </button>
         <button class="btn btn-action" id="inline-copy-btn" style="display: none;">
-            <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+            <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3">
+                </path>
+            </svg>
             Copy Link
         </button>
         <button class="btn" id="inline-qr-btn" style="display: none;">
-            <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+            <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z">
+                </path>
+            </svg>
             Tạo QR
         </button>
     </div>
@@ -354,14 +758,22 @@
     <div class="modal-overlay" id="qr-modal">
         <div class="modal-content" style="max-width: 340px;">
             <h3 style="font-size: 20px; color: #1e3a8a; margin-bottom: 8px;"> Mã QR Bưu Thiếp</h3>
-            <p style="font-size: 13px; color: #64748b; margin-bottom: 16px;">Quét mã để mở bưu thiếp và tự tay bóc phong bì!</p>
-            <div id="qr-code-box" style="display: flex; justify-content: center; margin-bottom: 16px; padding: 12px; background: #f8fafc; border-radius: 12px;"></div>
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 16px;">Quét mã để mở bưu thiếp và tự tay bóc phong
+                bì!</p>
+            <div id="qr-code-box"
+                style="display: flex; justify-content: center; margin-bottom: 16px; padding: 12px; background: #f8fafc; border-radius: 12px;">
+            </div>
             <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                <button class="btn btn-action" id="download-qr-btn" style="box-shadow:none; border-radius: 10px; font-size: 14px; padding: 10px 18px;">
-                    <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                <button class="btn btn-action" id="download-qr-btn"
+                    style="box-shadow:none; border-radius: 10px; font-size: 14px; padding: 10px 18px;">
+                    <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
                     Tải QR
                 </button>
-                <button class="btn" id="close-qr-btn" style="box-shadow:none; border-radius: 10px; font-size: 14px; padding: 10px 18px;">Đóng</button>
+                <button class="btn" id="close-qr-btn"
+                    style="box-shadow:none; border-radius: 10px; font-size: 14px; padding: 10px 18px;">Đóng</button>
             </div>
         </div>
     </div>
@@ -375,13 +787,31 @@
     <!-- MODAL CHỌN TEM -->
     <div class="modal-overlay" id="stamp-modal">
         <div class="modal-content">
-            <h3 style="font-size: 20px; color: #1e3a8a; margin-bottom: 10px;">Chọn một con tem</h3>
-            <p style="font-size: 14px; color: #64748b;">Chọn tem mặc định hoặc tải ảnh tem của riêng bạn để dán lên phong bì nhé!</p>
-            
+            <h3 style="font-size: 20px; color: #1e3a8a; margin-bottom: 10px;">Đóng Gói & Dán Tem</h3>
+            <p style="font-size: 14px; color: #64748b;">Điền người gửi/nhận và chọn tem để dán lên phong bì nhé!</p>
+
+            <div style="margin: 15px 0; text-align: left; background: #f8fafc; padding: 15px; border-radius: 8px;">
+                <h4 style="font-size: 14px; color: #1e3a8a; margin-bottom: 8px;">Thông tin gửi</h4>
+                <input type="text" id="env-receiver" placeholder="Gửi đến (Tên người nhận)..." style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Quicksand', sans-serif;">
+                <input type="text" id="env-sender" placeholder="Từ (Tên người gửi)..." style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: 'Quicksand', sans-serif;">
+            </div>
+
             <div class="stamp-options" id="stamp-options">
-                <div class="stamp-opt selected" data-src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Crect width='100' height='120' fill='%23fdfbf7'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' dominant-baseline='middle'%3E%E2%9C%88%EF%B8%8F%3C/text%3E%3Ctext x='50' y='105' font-size='14' text-anchor='middle' font-family='monospace' fill='%23333' font-weight='bold'%3EAIR MAIL%3C/text%3E%3C/svg%3E"><img src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Crect width='100' height='120' fill='%23fdfbf7'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' dominant-baseline='middle'%3E%E2%9C%88%EF%B8%8F%3C/text%3E%3Ctext x='50' y='105' font-size='14' text-anchor='middle' font-family='monospace' fill='%23333' font-weight='bold'%3EAIR MAIL%3C/text%3E%3C/svg%3E"></div>
-                <div class="stamp-opt" data-src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Crect width='100' height='120' fill='%23fdfbf7'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%8C%8D%3C/text%3E%3Ctext x='50' y='105' font-size='14' text-anchor='middle' font-family='monospace' fill='%23333' font-weight='bold'%3ETRAVEL%3C/text%3E%3C/svg%3E"><img src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Crect width='100' height='120' fill='%23fdfbf7'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%8C%8D%3C/text%3E%3Ctext x='50' y='105' font-size='14' text-anchor='middle' font-family='monospace' fill='%23333' font-weight='bold'%3ETRAVEL%3C/text%3E%3C/svg%3E"></div>
-                <div class="stamp-opt" data-src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Crect width='100' height='120' fill='%23fdfbf7'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%93%AC%3C/text%3E%3Ctext x='50' y='105' font-size='14' text-anchor='middle' font-family='monospace' fill='%23333' font-weight='bold'%3EPOST%3C/text%3E%3C/svg%3E"><img src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Crect width='100' height='120' fill='%23fdfbf7'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%93%AC%3C/text%3E%3Ctext x='50' y='105' font-size='14' text-anchor='middle' font-family='monospace' fill='%23333' font-weight='bold'%3EPOST%3C/text%3E%3C/svg%3E"></div>
+                <div class="stamp-opt selected"
+                    data-src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Crect width='100' height='120' fill='%23fdfbf7'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' dominant-baseline='middle'%3E%E2%9C%88%EF%B8%8F%3C/text%3E%3Ctext x='50' y='105' font-size='14' text-anchor='middle' font-family='monospace' fill='%23333' font-weight='bold'%3EAIR MAIL%3C/text%3E%3C/svg%3E">
+                    <img
+                        src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Crect width='100' height='120' fill='%23fdfbf7'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' dominant-baseline='middle'%3E%E2%9C%88%EF%B8%8F%3C/text%3E%3Ctext x='50' y='105' font-size='14' text-anchor='middle' font-family='monospace' fill='%23333' font-weight='bold'%3EAIR MAIL%3C/text%3E%3C/svg%3E">
+                </div>
+                <div class="stamp-opt"
+                    data-src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Crect width='100' height='120' fill='%23fdfbf7'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%8C%8D%3C/text%3E%3Ctext x='50' y='105' font-size='14' text-anchor='middle' font-family='monospace' fill='%23333' font-weight='bold'%3ETRAVEL%3C/text%3E%3C/svg%3E">
+                    <img
+                        src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Crect width='100' height='120' fill='%23fdfbf7'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%8C%8D%3C/text%3E%3Ctext x='50' y='105' font-size='14' text-anchor='middle' font-family='monospace' fill='%23333' font-weight='bold'%3ETRAVEL%3C/text%3E%3C/svg%3E">
+                </div>
+                <div class="stamp-opt"
+                    data-src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Crect width='100' height='120' fill='%23fdfbf7'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%93%AC%3C/text%3E%3Ctext x='50' y='105' font-size='14' text-anchor='middle' font-family='monospace' fill='%23333' font-weight='bold'%3EPOST%3C/text%3E%3C/svg%3E">
+                    <img
+                        src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Crect width='100' height='120' fill='%23fdfbf7'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%93%AC%3C/text%3E%3Ctext x='50' y='105' font-size='14' text-anchor='middle' font-family='monospace' fill='%23333' font-weight='bold'%3EPOST%3C/text%3E%3C/svg%3E">
+                </div>
                 <!-- Tem ảnh tùy chỉnh từ file -->
                 <div class="stamp-opt" id="stamp-ka" data-file="./ka.png">
                     <img src="./ka.png" alt="Ka stamp" style="width:100%;height:100%;object-fit:cover;">
@@ -389,16 +819,21 @@
                 <div class="stamp-opt" id="stamp-final" data-file="./final.png">
                     <img src="./final.png" alt="Final stamp" style="width:100%;height:100%;object-fit:cover;">
                 </div>
+                <div class="stamp-opt" id="stamp-xanh" data-file="./xanh.png">
+                    <img src="./xanh.png" alt="Xanh stamp" style="width:100%;height:100%;object-fit:cover;">
+                </div>
                 <!-- Nút Tải Tem Cá Nhân -->
                 <div class="stamp-opt" id="custom-stamp-btn" title="Tải ảnh tem của bạn">
                     <div style="font-size: 28px; color: #3b82f6; margin-bottom: 2px;">+</div>
-                    <span style="font-size: 11px; font-weight: bold; text-align: center; color: #64748b;">Tải ảnh<br>của bạn</span>
+                    <span style="font-size: 11px; font-weight: bold; text-align: center; color: #64748b;">Tải ảnh<br>của
+                        bạn</span>
                 </div>
             </div>
             <input type="file" id="stamp-upload" accept="image/*" style="display: none;">
 
             <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
-                <button class="btn" style="box-shadow:none;" onclick="document.getElementById('stamp-modal').classList.remove('active')">Hủy</button>
+                <button class="btn" style="box-shadow:none;"
+                    onclick="document.getElementById('stamp-modal').classList.remove('active')">Hủy</button>
                 <button class="btn btn-action" id="confirm-pack-btn">Dán tem & Gửi</button>
             </div>
         </div>
@@ -412,8 +847,8 @@
         import { getDatabase, ref, push, set, get, child } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
         const firebaseConfig = {
-            databaseURL: "https://postcard-b5dba-default-rtdb.asia-southeast1.firebasedatabase.app/",
-            projectId: "postcard-b5dba"
+            databaseURL: atob("aHR0cHM6Ly9wb3N0Y2FyZC1iNWRiYS1kZWZhdWx0LXJ0ZGIuYXNpYS1zb3V0aGVhc3QxLmZpcmViYXNlZGF0YWJhc2UuYXBwLw=="),
+            projectId: atob("cG9zdGNhcmQtYjVkYmE=")
         };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
@@ -424,7 +859,7 @@
         const card = document.getElementById('postcard');
         const flipBtn = document.getElementById('flip-btn');
         const flipText = document.getElementById('flip-text');
-        
+
         // Các lớp phong bì
         const envBack = document.getElementById('env-back');
         const envLeft = document.getElementById('env-left');
@@ -433,8 +868,16 @@
         const envFlap = document.getElementById('env-flap');
         const envParts = [envBack, envLeft, envRight, envBottom, envFlap];
         
+        const envFrontSide = document.getElementById('env-front-side');
+
         const envStamp = document.getElementById('env-stamp');
         const stampDisplayImg = document.getElementById('stamp-display-img');
+        
+        const envAddressDisplay = document.getElementById('env-address-display');
+        const displaySender = document.getElementById('display-sender');
+        const displayReceiver = document.getElementById('display-receiver');
+        const envSenderInput = document.getElementById('env-sender');
+        const envReceiverInput = document.getElementById('env-receiver');
 
         // Khung ảnh bưu thiếp
         const imageUpload = document.getElementById('image-upload');
@@ -442,12 +885,12 @@
         const displayImage = document.getElementById('display-image');
         const uploadHint = document.getElementById('upload-hint');
         const messageText = document.getElementById('message-text');
-        
+
         // Buttons & Modals
         const packBtn = document.getElementById('pack-btn');
         const createNewBtn = document.getElementById('create-new-btn');
         const mainControls = document.getElementById('main-controls');
-        
+
         const stampModal = document.getElementById('stamp-modal');
         const stampOptions = document.querySelectorAll('.stamp-opt:not(#custom-stamp-btn)');
         const customStampBtn = document.getElementById('custom-stamp-btn');
@@ -462,7 +905,7 @@
         const downloadQrBtn = document.getElementById('download-qr-btn');
         const closeQrBtn = document.getElementById('close-qr-btn');
         let qrInstance = null;
-        
+
         const loadingScreen = document.getElementById('loading-screen');
         const toastEl = document.getElementById('toast-message');
 
@@ -471,6 +914,10 @@
         let currentStampBase64 = stampOptions[0].getAttribute('data-src'); // Mặc định tem đầu tiên
         let isFlipped = false;
         let isViewingMode = false;
+        let isPortrait = false;
+        
+        const orientationBtn = document.getElementById('orientation-btn');
+        const orientationText = document.getElementById('orientation-text');
 
         // --- Utilities ---
         function showToast(message) {
@@ -492,7 +939,7 @@
             const year = d.getFullYear();
             const hours = String(d.getHours()).padStart(2, '0');
             const minutes = String(d.getMinutes()).padStart(2, '0');
-            
+
             return {
                 date: `${day} ${month} ${year}`,
                 time: `${hours}:${minutes}`
@@ -505,7 +952,7 @@
             document.getElementById('card-pm-time').textContent = pmData.time;
             document.getElementById('env-pm-date').textContent = pmData.date;
             document.getElementById('env-pm-time').textContent = pmData.time;
-            
+
             document.getElementById('card-postmark').style.display = 'block';
             document.getElementById('env-postmark').style.display = 'block';
         }
@@ -513,12 +960,23 @@
         /* --- Event Listeners Lật & Tải Ảnh --- */
         flipBtn.addEventListener('click', toggleFlip);
         
+        orientationBtn.addEventListener('click', () => {
+            isPortrait = !isPortrait;
+            if (isPortrait) {
+                scene.classList.add('portrait');
+                orientationText.textContent = 'Xoay Ngang';
+            } else {
+                scene.classList.remove('portrait');
+                orientationText.textContent = 'Xoay Dọc';
+            }
+        });
+
         // KHÓA LẬT THẺ KHI TẢI ẢNH:
-        uploadTrigger.addEventListener('click', (e) => { 
+        uploadTrigger.addEventListener('click', (e) => {
             const isReceiver = !!new URLSearchParams(window.location.search).get('id');
-            if(!isReceiver) {
+            if (!isReceiver) {
                 e.stopPropagation(); // Ngăn sự kiện click lan ra ngoài gây lật thẻ
-                imageUpload.click(); 
+                imageUpload.click();
             }
         });
 
@@ -526,17 +984,19 @@
 
         // Tải ảnh bưu thiếp
         imageUpload.addEventListener('click', (e) => e.stopPropagation());
-        imageUpload.addEventListener('change', function(e) { handleImageCompression(e.target.files[0], (base64) => {
-            currentBase64 = base64;
-            displayImage.src = base64; displayImage.style.display = 'block'; uploadHint.style.display = 'none';
-        });});
+        imageUpload.addEventListener('change', function (e) {
+            handleImageCompression(e.target.files[0], (base64) => {
+                currentBase64 = base64;
+                displayImage.src = base64; displayImage.style.display = 'block'; uploadHint.style.display = 'none';
+            });
+        });
 
         function handleImageCompression(file, callback, customMaxSize = 800) {
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = function(event) {
+            reader.onload = function (event) {
                 const img = new Image();
-                img.onload = function() {
+                img.onload = function () {
                     const canvas = document.createElement('canvas');
                     let width = img.width, height = img.height;
                     const maxSize = customMaxSize;
@@ -552,79 +1012,21 @@
         }
 
         // --- LOGIC TEM & ĐÓNG GÓI ---
-        
+
         packBtn.addEventListener('click', () => {
             if (!currentBase64 && !messageText.value.trim()) {
                 showToast("Hãy tải ảnh lên hoặc viết vài lời trước khi đóng gói nhé!");
                 return;
             }
-            stampModal.classList.add('active');
-        });
+            
+            if (isFlipped) toggleFlip(); // Xoay về mặt trước
+            
+            mainControls.style.display = 'none';
+            document.getElementById('main-subtitle').innerText = "Đang đưa bưu thiếp vào phong bì...";
 
-        // Chọn tem mặc định (SVG inline)
-        stampOptions.forEach(opt => {
-            if (opt.hasAttribute('data-src')) {
-                opt.addEventListener('click', () => {
-                    document.querySelectorAll('.stamp-opt').forEach(el => el.classList.remove('selected'));
-                    opt.classList.add('selected');
-                    currentStampBase64 = opt.getAttribute('data-src');
-                });
-            }
-        });
-
-        // Khởi tạo 2 tem từ file ảnh (chỉ lưu URL, KHÔNG lưu base64 3MB)
-        function initFileStamps() {
-            const fileStamps = [
-                { id: 'stamp-ka', file: './ka.png' },
-                { id: 'stamp-final', file: './final.png' }
-            ];
-            for (const { id, file } of fileStamps) {
-                const el = document.getElementById(id);
-                if (!el) continue;
-                el.setAttribute('data-src', file);
-                el.addEventListener('click', () => {
-                    document.querySelectorAll('.stamp-opt').forEach(e => e.classList.remove('selected'));
-                    el.classList.add('selected');
-                    currentStampBase64 = file;
-                });
-            }
-        }
-        initFileStamps();
-
-        // Tự tải ảnh TEM CÁ NHÂN
-        customStampBtn.addEventListener('click', () => stampUpload.click());
-        stampUpload.addEventListener('change', function(e) {
-            handleImageCompression(e.target.files[0], (base64) => {
-                currentStampBase64 = base64;
-                customStampBtn.innerHTML = `<img src="${base64}">`;
-                document.querySelectorAll('.stamp-opt').forEach(el => el.classList.remove('selected'));
-                customStampBtn.classList.add('selected');
-                customStampBtn.style.padding = '0'; // Xóa viền padding để ảnh tràn viền tem
-            }, 150); // CỰC KỲ QUAN TRỌNG: nén tem cá nhân về kích thước siêu nhỏ 150px
-        });
-
-        // Bấm "Dán tem & Gửi" -> Bắt đầu Animation
-        confirmPackBtn.addEventListener('click', async () => {
-            stampModal.classList.remove('active');
-            if(isFlipped) toggleFlip(); // Xoay về mặt trước
-
-            // Lấy thời gian hiện tại và đóng dấu bưu điện
-            const sendTimestamp = Date.now();
-            window.postcardSendTimestamp = sendTimestamp; // Lưu tạm để truyền vào Firebase
-            applyPostmark(sendTimestamp);
-
-            // Hiện các mảnh phong bì
+            // Hiện các mảnh phong bì mặt nắp
             envParts.forEach(el => { el.style.display = 'block'; });
             envFlap.style.transform = 'rotateX(180deg)'; // Nắp đang mở
-            
-            // Set ảnh tem
-            stampDisplayImg.src = currentStampBase64;
-            envStamp.style.display = 'block';
-            envStamp.classList.remove('stamped'); // Reset
-
-            // Ẩn thanh công cụ
-            mainControls.style.display = 'none';
-            document.getElementById('main-subtitle').innerText = "Đang đóng gói yêu thương...";
 
             setTimeout(() => {
                 cardWrapper.style.transform = 'translateY(-110%) scale(0.85)';
@@ -636,12 +1038,61 @@
                         envFlap.style.transform = 'rotateX(0deg)'; // Gập nắp kín bưng
 
                         setTimeout(() => {
-                            envStamp.classList.add('stamped'); // Cộp tem
-                            setTimeout(saveToFirebaseAndShowLink, 1000);
+                            document.getElementById('main-subtitle').innerText = "Xoay ra mặt trước để dán tem...";
+                            scene.style.transform = 'scaleX(0)'; // 2D Flip effect
+                            scene.style.transition = 'transform 0.4s ease-in-out';
+                            
+                            setTimeout(() => {
+                                // Ẩn lớp nắp sau, hiện lớp mặt trước
+                                envParts.forEach(el => { el.style.display = 'none'; });
+                                envFrontSide.style.display = 'block';
+                                
+                                // Reset opacity của các info con
+                                envAddressDisplay.style.opacity = '0';
+                                envStamp.style.opacity = '0';
+                                envStamp.classList.remove('stamped');
+
+                                scene.style.transform = 'scaleX(1)'; // Mở lại
+
+                                setTimeout(() => {
+                                    stampModal.classList.add('active'); // Hiện bảng chọn tem
+                                }, 500);
+                            }, 400);
+
                         }, 800);
                     }, 600);
                 }, 600);
-            }, 300); 
+            }, 300);
+        });
+
+        // Bấm "Dán tem & Gửi" -> Bắt đầu Animation
+        confirmPackBtn.addEventListener('click', async () => {
+            stampModal.classList.remove('active');
+
+            // Lấy thời gian hiện tại và đóng dấu bưu điện
+            const sendTimestamp = Date.now();
+            window.postcardSendTimestamp = sendTimestamp; // Lưu tạm để truyền vào Firebase
+            applyPostmark(sendTimestamp);
+
+            // Set ảnh tem
+            stampDisplayImg.src = currentStampBase64;
+
+            // Set thông tin người gửi/nhận
+            const senderName = envSenderInput.value.trim() || 'Một người giấu tên';
+            const receiverName = envReceiverInput.value.trim() || 'Người bạn phương xa';
+            displaySender.textContent = senderName;
+            displayReceiver.textContent = receiverName;
+            
+            envAddressDisplay.style.opacity = '1';
+            envAddressDisplay.style.transition = 'opacity 0.5s';
+
+            document.getElementById('main-subtitle').innerText = "Đang đóng gói yêu thương...";
+
+            setTimeout(() => {
+                envStamp.style.opacity = '1';
+                envStamp.classList.add('stamped'); // Cộp tem
+                setTimeout(saveToFirebaseAndShowLink, 1000);
+            }, 500);
         });
 
         async function saveToFirebaseAndShowLink() {
@@ -651,17 +1102,20 @@
             try {
                 const postcardsRef = ref(db, 'postcards');
                 const newPostcardRef = push(postcardsRef);
-                
+
                 await set(newPostcardRef, {
                     image: currentBase64,
                     text: messageText.value,
                     stamp: currentStampBase64,
+                    sender: displaySender.textContent,
+                    receiver: displayReceiver.textContent,
+                    isPortrait: isPortrait,
                     createdAt: window.postcardSendTimestamp || Date.now()
                 });
 
                 const baseUrl = window.location.href.split('?')[0];
                 let finalUrl = baseUrl + "?id=" + newPostcardRef.key;
-                
+
                 try {
                     const response = await fetch(`https://is.gd/create.php?format=json&url=${encodeURIComponent(finalUrl)}`);
                     if (response.ok) {
@@ -672,7 +1126,7 @@
 
                 finalLinkInput.value = finalUrl;
                 window.generatedPostcardLink = finalUrl;
-                
+
                 // Reset QR cũ nếu có
                 qrCodeBox.innerHTML = '';
                 qrInstance = null;
@@ -680,11 +1134,11 @@
                 mainControls.style.display = 'flex';
                 flipBtn.style.display = 'none';
                 packBtn.style.display = 'none';
-                
+
                 createNewBtn.style.display = 'flex';
                 inlineCopyBtn.style.display = 'flex';
                 inlineQrBtn.style.display = 'flex';
-                
+
                 document.getElementById('main-subtitle').innerHTML = "Đã gửi thành công!<br>Hãy copy link hoặc tạo mã QR gửi cho người nhận nhé.";
 
             } catch (error) {
@@ -751,7 +1205,7 @@
             if (cardId) {
                 isViewingMode = true;
                 document.getElementById('main-subtitle').innerHTML = "Bạn có 1 bưu thiếp mới.<br><b>Chạm vào phong bì để bóc thư nhé!</b>";
-                
+
                 packBtn.style.display = 'none';
                 flipBtn.style.display = 'none';
                 uploadHint.style.display = 'none';
@@ -764,20 +1218,33 @@
                     const snapshot = await get(child(ref(db), `postcards/${cardId}`));
                     if (snapshot.exists()) {
                         const data = snapshot.val();
-                        
+
                         if (data.image) { displayImage.src = data.image; displayImage.style.display = 'block'; }
                         if (data.text) { messageText.value = data.text; }
                         stampDisplayImg.src = data.stamp || stampOptions[0].getAttribute('data-src');
+
+                        if (data.sender || data.receiver) {
+                            displaySender.textContent = data.sender || 'Một người giấu tên';
+                            displayReceiver.textContent = data.receiver || 'Người bạn phương xa';
+                            envAddressDisplay.style.display = 'block';
+                        }
+
+                        if (data.isPortrait) {
+                            isPortrait = true;
+                            scene.classList.add('portrait');
+                            orientationText.textContent = 'Xoay Ngang';
+                        }
 
                         if (data.createdAt) {
                             applyPostmark(data.createdAt);
                         }
 
                         // Cài đặt giao diện Phong bì đã đóng kín
-                        envParts.forEach(el => { el.style.display = 'block'; });
-                        envFlap.style.transform = 'rotateX(0deg)'; // Nắp đóng
-                        envStamp.style.display = 'block';
+                        envFrontSide.style.display = 'block';
+                        envAddressDisplay.style.opacity = '1';
+                        envStamp.style.opacity = '1';
                         envStamp.classList.add('stamped');
+                        envParts.forEach(el => { el.style.display = 'none'; });
 
                         cardWrapper.style.zIndex = '10';
                         cardWrapper.style.transform = 'translateY(0) scale(0.85)';
@@ -797,36 +1264,51 @@
         });
 
         function openEnvelopeFromReceiver() {
-            if(!isViewingMode) return;
+            if (!isViewingMode) return;
             isViewingMode = false;
             scene.style.cursor = "default";
             scene.removeEventListener('click', openEnvelopeFromReceiver);
-            document.getElementById('main-subtitle').innerText = "Chạm vào nút bên dưới để lật mặt sau nhé!";
+            document.getElementById('main-subtitle').innerText = "Đang bóc thư...";
 
-            envFlap.style.transform = 'rotateX(180deg)';
-
+            // Lật phong bì từ mặt trước ra mặt sau (mặt có nắp)
+            scene.style.transform = 'scaleX(0)';
+            scene.style.transition = 'transform 0.4s ease-in-out';
+            
             setTimeout(() => {
-                cardWrapper.style.transform = 'translateY(-110%) scale(0.85)';
-
+                envFrontSide.style.display = 'none';
+                envParts.forEach(el => { el.style.display = 'block'; });
+                envFlap.style.transform = 'rotateX(0deg)'; // Nắp đóng
+                
+                scene.style.transform = 'scaleX(1)';
+                
                 setTimeout(() => {
-                    envParts.forEach(el => el.style.opacity = '0');
-                    envStamp.style.opacity = '0';
-
-                    cardWrapper.style.zIndex = '30';
-                    cardWrapper.style.transform = 'translateY(0) scale(1)';
+                    // Mở nắp
+                    envFlap.style.transform = 'rotateX(180deg)';
 
                     setTimeout(() => {
-                        envParts.forEach(el => el.style.display = 'none');
-                        envStamp.style.display = 'none';
-                        
-                        createNewBtn.style.display = 'flex';
-                        flipBtn.style.display = 'flex';
-                        
-                        // Xóa dòng setTimeout(toggleFlip, 500); để không lật sau khi mở thư
-                    }, 800);
-                }, 600);
-            }, 600);
+                        // Kéo thiệp ra
+                        cardWrapper.style.transform = 'translateY(-110%) scale(0.85)';
+
+                        setTimeout(() => {
+                            envParts.forEach(el => el.style.opacity = '0');
+                            
+                            cardWrapper.style.zIndex = '30';
+                            cardWrapper.style.transform = 'translateY(0) scale(1)';
+
+                            setTimeout(() => {
+                                envParts.forEach(el => el.style.display = 'none');
+                                envParts.forEach(el => el.style.opacity = '1'); // reset for future
+                                
+                                createNewBtn.style.display = 'flex';
+                                flipBtn.style.display = 'flex';
+                                document.getElementById('main-subtitle').innerText = "Chạm vào nút bên dưới để lật mặt sau nhé!";
+                            }, 800);
+                        }, 600);
+                    }, 600);
+                }, 500);
+            }, 400);
         }
     </script>
 </body>
+
 </html>
