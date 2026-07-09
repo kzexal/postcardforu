@@ -407,6 +407,34 @@
             pointer-events: auto;
         }
 
+        .music-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: none;
+            z-index: 10;
+        }
+
+        .music-widget {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            border: none;
+            display: none;
+            z-index: 5;
+        }
+
         /* --- UI Bưu thiếp mặt sau --- */
         .back-title {
             font-size: 18px;
@@ -694,20 +722,22 @@
                             <div class="upload-hint" id="upload-hint">
                                 <div class="upload-buttons">
                                     <button class="btn btn-upload" id="btn-img-upload">
-                                        📷 Tải Ảnh Lên
+                                        Tải Ảnh Lên
                                     </button>
                                     <button class="btn btn-upload" id="btn-video-embed">
-                                        🎬 Nhúng Video
+                                        Nhúng Video
                                     </button>
                                 </div>
                             </div>
                             <img id="display-image" src="" alt="Hình ảnh của bạn">
                             <iframe id="display-iframe" src="" allowfullscreen></iframe>
-                            <video id="display-video" controls autoplay loop muted playsinline></video>
+                            <video id="display-video" controls playsinline></video>
                             <div class="drag-hint" id="drag-hint">
                                 <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path></svg>
                                 Kéo ảnh để căn chỉnh
                             </div>
+                            <button class="music-btn" id="btn-add-music">Thêm Nhạc</button>
+                            <iframe class="music-widget" id="display-music" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
                         </div>
                         <div class="polaroid-text">Greetings</div>
                     </div>
@@ -829,6 +859,19 @@
     </div>
 
     <input type="text" id="final-link-input" style="position: absolute; left: -9999px;" readonly>
+
+    <!-- MODAL NHẠC NỀN -->
+    <div class="modal-overlay" id="music-modal">
+        <div class="modal-content">
+            <h3 style="font-size: 20px; color: #1e3a8a; margin-bottom: 10px;">Thêm Nhạc Nền</h3>
+            <p style="font-size: 14px; color: #475569; margin-bottom: 15px;">Dán link bài hát từ <strong>Spotify</strong>, <strong>SoundCloud</strong>, hoặc <strong>YouTube</strong> vào đây:</p>
+            <input type="text" id="music-link-input" placeholder="Ví dụ: https://open.spotify.com/track/..." style="width: 100%; padding: 12px; border: 2px solid #cbd5e1; border-radius: 8px; font-family: 'Quicksand', sans-serif; margin-bottom: 15px;">
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button class="btn" style="box-shadow:none; background: #e2e8f0; color: #475569;" id="close-music-modal">Hủy</button>
+                <button class="btn btn-action" id="confirm-music-link">Xác nhận</button>
+            </div>
+        </div>
+    </div>
 
     <!-- MODAL QR CODE -->
     <div class="modal-overlay" id="qr-modal">
@@ -1019,9 +1062,18 @@
         const displayIframe = document.getElementById('display-iframe');
         const displayVideo = document.getElementById('display-video');
 
+        const musicModal = document.getElementById('music-modal');
+        const closeMusicModal = document.getElementById('close-music-modal');
+        const confirmMusicLink = document.getElementById('confirm-music-link');
+        const musicLinkInput = document.getElementById('music-link-input');
+        const btnAddMusic = document.getElementById('btn-add-music');
+        const displayMusic = document.getElementById('display-music');
+
         // --- State Variables ---
         let currentMediaType = 'none'; // 'image', 'streamable', 'youtube', 'mp4'
         let currentMediaUrl = '';
+        let currentMusicUrl = '';
+        let currentMusicType = '';
         let currentBase64 = "";
         let currentStampBase64 = stampOptions[0].getAttribute('data-src'); // Mặc định tem đầu tiên
         let isFlipped = false;
@@ -1192,12 +1244,19 @@
             displayIframe.style.display = 'none';
             displayVideo.style.display = 'none';
             uploadHint.style.display = 'none';
+            
+            btnAddMusic.style.display = 'none';
+            displayMusic.style.display = 'none';
+            currentMusicUrl = '';
+            currentMusicType = '';
+
             const dragHint = document.getElementById('drag-hint');
             if (dragHint) dragHint.classList.remove('show');
             
             // Dừng phát nhạc/video ẩn
             displayIframe.src = '';
             displayVideo.src = '';
+            displayMusic.src = '';
         }
 
         if (confirmVideoLink) confirmVideoLink.addEventListener('click', () => {
@@ -1214,7 +1273,7 @@
                 currentMediaType = 'streamable';
                 let id = url.split('/').pop();
                 if(url.includes('/e/')) id = url.split('/e/')[1].split('?')[0];
-                currentMediaUrl = `https://streamable.com/e/${id}?autoplay=1&muted=1&loop=1`;
+                currentMediaUrl = `https://streamable.com/e/${id}`;
                 displayIframe.src = currentMediaUrl;
                 displayIframe.style.display = 'block';
             } 
@@ -1224,7 +1283,7 @@
                 if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1].split('?')[0];
                 else if (url.includes('v=')) videoId = url.split('v=')[1].split('&')[0];
                 
-                currentMediaUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0`;
+                currentMediaUrl = `https://www.youtube.com/embed/${videoId}?rel=0`;
                 displayIframe.src = currentMediaUrl;
                 displayIframe.style.display = 'block';
             }
@@ -1238,6 +1297,52 @@
             videoModal.classList.remove('active');
         });
 
+        // Xử lý link nhạc
+        if (btnAddMusic) btnAddMusic.addEventListener('click', (e) => {
+            e.stopPropagation();
+            musicModal.classList.add('active');
+        });
+
+        if (closeMusicModal) closeMusicModal.addEventListener('click', () => {
+            musicModal.classList.remove('active');
+        });
+
+        if (confirmMusicLink) confirmMusicLink.addEventListener('click', () => {
+            let url = musicLinkInput.value.trim();
+            if (!url) {
+                showToast('Vui lòng dán đường link vào ô trống!');
+                return;
+            }
+            
+            if (url.includes('spotify.com')) {
+                currentMusicType = 'spotify';
+                let trackId = url.split('track/')[1];
+                if (trackId) trackId = trackId.split('?')[0];
+                currentMusicUrl = `https://open.spotify.com/embed/track/${trackId}`;
+                displayMusic.style.height = '80px';
+                
+            } else if (url.includes('soundcloud.com')) {
+                currentMusicType = 'soundcloud';
+                currentMusicUrl = `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true`;
+                displayMusic.style.height = '166px';
+                
+            } else if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                currentMusicType = 'youtube';
+                let videoId = '';
+                if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1].split('?')[0];
+                else if (url.includes('v=')) videoId = url.split('v=')[1].split('&')[0];
+                currentMusicUrl = `https://www.youtube.com/embed/${videoId}?rel=0`;
+                displayMusic.style.height = '80px';
+            } else {
+                showToast('Link nhạc chưa được hỗ trợ. Hãy dùng Spotify, SoundCloud hoặc YouTube nhé!');
+                return;
+            }
+            
+            displayMusic.src = currentMusicUrl;
+            displayMusic.style.display = 'block';
+            musicModal.classList.remove('active');
+        });
+
         // Tải ảnh bưu thiếp
         imageUpload.addEventListener('click', (e) => e.stopPropagation());
         imageUpload.addEventListener('change', function (e) {
@@ -1248,6 +1353,9 @@
                 currentMediaUrl = base64;
                 displayImage.src = base64; 
                 displayImage.style.display = 'block'; 
+                
+                // Hiển thị nút thêm nhạc khi đã tải ảnh lên
+                btnAddMusic.style.display = 'block';
                 
                 // Reset pan when a new image is uploaded
                 panX = 50;
@@ -1421,6 +1529,8 @@
                     image: currentMediaType === 'image' ? currentBase64 : '',
                     mediaUrl: currentMediaUrl,
                     mediaType: currentMediaType,
+                    musicUrl: currentMusicUrl,
+                    musicType: currentMusicType,
                     text: messageText.value,
                     stamp: currentStampBase64,
                     sender: displaySender.textContent,
@@ -1560,6 +1670,17 @@
                             } else if (loadType === 'mp4' || loadType === 'video') {
                                 displayVideo.src = loadUrl;
                                 displayVideo.style.display = 'block';
+                            }
+                            
+                            if (data.musicUrl) {
+                                displayMusic.src = data.musicUrl;
+                                if (data.musicType === 'soundcloud') {
+                                    displayMusic.style.height = '166px';
+                                } else {
+                                    displayMusic.style.height = '80px';
+                                }
+                                displayMusic.style.display = 'block';
+                                btnAddMusic.style.display = 'none';
                             }
                         }
                         if (data.text) { messageText.value = data.text; }
