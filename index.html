@@ -430,7 +430,6 @@
             right: 40px;
             transform: translateY(-50%);
             width: 300px;
-            height: 300px;
             z-index: 100;
             opacity: 0;
             pointer-events: none;
@@ -457,8 +456,7 @@
                 top: 20px;
                 right: 50%;
                 transform: translateX(50%);
-                width: 250px;
-                height: 250px;
+                width: 300px;
             }
         }
 
@@ -1368,6 +1366,8 @@
             
             const extMusic = document.getElementById('external-music-container');
             if (extMusic) {
+                if (currentMusicType === 'spotify') extMusic.style.height = '352px';
+                else extMusic.style.height = '300px';
                 extMusic.style.display = 'block';
                 setTimeout(() => extMusic.classList.add('visible'), 50);
             }
@@ -1796,6 +1796,8 @@
                                 
                                 const extMusic = document.getElementById('external-music-container');
                                 if (extMusic && displayMusic.getAttribute('src')) {
+                                    if (displayMusic.src.includes('spotify.com')) extMusic.style.height = '352px';
+                                    else extMusic.style.height = '300px';
                                     extMusic.style.display = 'block';
                                     setTimeout(() => extMusic.classList.add('visible'), 50);
                                 }
