@@ -453,21 +453,13 @@
 
         @media (max-width: 1100px) {
             .external-music-container {
-                top: 20px;
-                right: 50%;
-                transform: translateX(50%);
-                width: 300px;
-            }
-        }
-
-        @media (max-width: 500px) {
-            .external-music-container {
-                position: fixed;
-                top: 20px;
-                bottom: auto;
-                right: 50%;
-                transform: translateX(50%);
-                width: 92%;
+                position: relative;
+                top: auto;
+                right: auto;
+                transform: none;
+                width: 100%;
+                max-width: 350px;
+                margin: 0 auto 20px auto;
                 z-index: 100;
             }
         }
@@ -1384,7 +1376,7 @@
                 if (currentMusicType === 'spotify') {
                     extMusic.style.height = isMobile ? '80px' : '352px';
                 } else {
-                    extMusic.style.height = isMobile ? '166px' : '300px';
+                    extMusic.style.height = isMobile ? '80px' : '300px';
                 }
                 extMusic.style.display = 'block';
                 setTimeout(() => extMusic.classList.add('visible'), 50);
@@ -1822,7 +1814,7 @@
                                     if (displayMusic.src.includes('spotify.com')) {
                                         extMusic.style.height = isMobile ? '80px' : '352px';
                                     } else {
-                                        extMusic.style.height = isMobile ? '166px' : '300px';
+                                        extMusic.style.height = isMobile ? '80px' : '300px';
                                     }
                                     extMusic.style.display = 'block';
                                     setTimeout(() => extMusic.classList.add('visible'), 50);
