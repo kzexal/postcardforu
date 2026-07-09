@@ -460,6 +460,18 @@
             }
         }
 
+        @media (max-width: 500px) {
+            .external-music-container {
+                position: fixed;
+                top: 20px;
+                bottom: auto;
+                right: 50%;
+                transform: translateX(50%);
+                width: 92%;
+                z-index: 100;
+            }
+        }
+
         /* --- UI Bưu thiếp mặt sau --- */
         .back-title {
             font-size: 18px;
@@ -1347,6 +1359,8 @@
                 return;
             }
             
+            let isMobile = window.innerWidth <= 500;
+
             if (url.includes('spotify.com')) {
                 currentMusicType = 'spotify';
                 let trackId = url.split('track/')[1];
@@ -1355,7 +1369,8 @@
                 
             } else if (url.includes('soundcloud.com')) {
                 currentMusicType = 'soundcloud';
-                currentMusicUrl = `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23ff5500&auto_play=false&visual=true&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true`;
+                let visualParam = isMobile ? 'false' : 'true';
+                currentMusicUrl = `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23ff5500&auto_play=false&visual=${visualParam}&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true`;
                 
             } else {
                 showToast('Link nhạc chưa được hỗ trợ. Hãy dùng Spotify hoặc SoundCloud nhé!');
@@ -1366,8 +1381,11 @@
             
             const extMusic = document.getElementById('external-music-container');
             if (extMusic) {
-                if (currentMusicType === 'spotify') extMusic.style.height = '352px';
-                else extMusic.style.height = '300px';
+                if (currentMusicType === 'spotify') {
+                    extMusic.style.height = isMobile ? '80px' : '352px';
+                } else {
+                    extMusic.style.height = isMobile ? '166px' : '300px';
+                }
                 extMusic.style.display = 'block';
                 setTimeout(() => extMusic.classList.add('visible'), 50);
             }
@@ -1705,7 +1723,11 @@
                             }
                             
                             if (data.musicUrl) {
-                                displayMusic.src = data.musicUrl;
+                                let finalMusicUrl = data.musicUrl;
+                                if (window.innerWidth <= 500 && finalMusicUrl.includes('soundcloud.com')) {
+                                    finalMusicUrl = finalMusicUrl.replace('visual=true', 'visual=false');
+                                }
+                                displayMusic.src = finalMusicUrl;
                                 btnAddMusic.style.display = 'none';
                             }
                         }
@@ -1796,8 +1818,12 @@
                                 
                                 const extMusic = document.getElementById('external-music-container');
                                 if (extMusic && displayMusic.getAttribute('src')) {
-                                    if (displayMusic.src.includes('spotify.com')) extMusic.style.height = '352px';
-                                    else extMusic.style.height = '300px';
+                                    let isMobile = window.innerWidth <= 500;
+                                    if (displayMusic.src.includes('spotify.com')) {
+                                        extMusic.style.height = isMobile ? '80px' : '352px';
+                                    } else {
+                                        extMusic.style.height = isMobile ? '166px' : '300px';
+                                    }
                                     extMusic.style.display = 'block';
                                     setTimeout(() => extMusic.classList.add('visible'), 50);
                                 }
