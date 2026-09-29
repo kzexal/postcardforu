@@ -1029,6 +1029,44 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        // --- MÃ HÓA AES-GCM (Web Crypto API) ---
+        async function generateKey() {
+            const key = await crypto.subtle.generateKey(
+                { name: 'AES-GCM', length: 256 },
+                true,
+                ['encrypt', 'decrypt']
+            );
+            const exported = await crypto.subtle.exportKey('raw', key);
+            return btoa(String.fromCharCode(...new Uint8Array(exported)))
+                .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        }
+
+        async function importKey(base64url) {
+            const b64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+            const raw = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+            return crypto.subtle.importKey('raw', raw, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+        }
+
+        async function encryptData(keyBase64url, plaintext) {
+            const key = await importKey(keyBase64url);
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+            const encoded = new TextEncoder().encode(plaintext);
+            const cipherBuf = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
+            const combined = new Uint8Array(iv.byteLength + cipherBuf.byteLength);
+            combined.set(iv, 0);
+            combined.set(new Uint8Array(cipherBuf), iv.byteLength);
+            return btoa(String.fromCharCode(...combined));
+        }
+
+        async function decryptData(keyBase64url, encryptedBase64) {
+            const key = await importKey(keyBase64url);
+            const combined = Uint8Array.from(atob(encryptedBase64), c => c.charCodeAt(0));
+            const iv = combined.slice(0, 12);
+            const cipherBuf = combined.slice(12);
+            const plainBuf = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, cipherBuf);
+            return new TextDecoder().decode(plainBuf);
+        }
+
         // --- DOM Elements ---
         const scene = document.getElementById('scene');
         const cardWrapper = document.getElementById('card-wrapper');
@@ -1561,13 +1599,14 @@
 
         async function saveToFirebaseAndShowLink() {
             loadingScreen.style.display = 'flex';
-            document.getElementById('loading-text').textContent = "Đang lưu lên hệ thống...";
+            document.getElementById('loading-text').textContent = "Đang mã hóa dữ liệu...";
 
             try {
-                const postcardsRef = ref(db, 'postcards');
-                const newPostcardRef = push(postcardsRef);
+                // Tạo key mã hóa ngẫu nhiên
+                const encKey = await generateKey();
 
-                await set(newPostcardRef, {
+                // Gói toàn bộ dữ liệu vào một object rồi mã hóa
+                const plainData = JSON.stringify({
                     image: currentMediaType === 'image' ? currentBase64 : '',
                     mediaUrl: currentMediaUrl,
                     mediaType: currentMediaType,
@@ -1583,14 +1622,29 @@
                     createdAt: window.postcardSendTimestamp || Date.now()
                 });
 
-                const baseUrl = window.location.href.split('?')[0];
-                let finalUrl = baseUrl + "?id=" + newPostcardRef.key;
+                document.getElementById('loading-text').textContent = "Đang lưu lên hệ thống...";
+                const encryptedPayload = await encryptData(encKey, plainData);
 
+                const postcardsRef = ref(db, 'postcards');
+                const newPostcardRef = push(postcardsRef);
+
+                // Chỉ lưu ciphertext trên Firebase – không có plaintext nào
+                await set(newPostcardRef, {
+                    encrypted: encryptedPayload,
+                    v: 2
+                });
+
+                const baseUrl = window.location.href.split('?')[0].split('#')[0];
+                // Key được nhúng vào URL fragment (#) – trình duyệt KHÔNG gửi lên server
+                let finalUrl = baseUrl + "?id=" + newPostcardRef.key + "#" + encKey;
+
+                // Rút gọn URL (is.gd giữ nguyên fragment khi redirect)
                 try {
-                    const response = await fetch(`https://is.gd/create.php?format=json&url=${encodeURIComponent(finalUrl)}`);
+                    const urlToShorten = baseUrl + "?id=" + newPostcardRef.key;
+                    const response = await fetch(`https://is.gd/create.php?format=json&url=${encodeURIComponent(urlToShorten)}`);
                     if (response.ok) {
                         const data = await response.json();
-                        if (data.shorturl) finalUrl = data.shorturl;
+                        if (data.shorturl) finalUrl = data.shorturl + "#" + encKey;
                     }
                 } catch (e) { console.log("Không rút gọn được, dùng link gốc"); }
 
@@ -1689,7 +1743,30 @@
                 try {
                     const snapshot = await get(child(ref(db), `postcards/${cardId}`));
                     if (snapshot.exists()) {
-                        const data = snapshot.val();
+                        const rawData = snapshot.val();
+
+                        // --- Giải mã nếu là postcard mã hóa (v2) ---
+                        let data;
+                        if (rawData.v === 2 && rawData.encrypted) {
+                            const encKey = window.location.hash.substring(1);
+                            if (!encKey) {
+                                showToast('Link bưu thiếp không hợp lệ hoặc đã bị cắt mất key!');
+                                loadingScreen.style.display = 'none';
+                                scene.style.opacity = '1';
+                                return;
+                            }
+                            try {
+                                data = JSON.parse(await decryptData(encKey, rawData.encrypted));
+                            } catch (decryptErr) {
+                                showToast('Không thể giải mã. Link có thể bị sai hoặc thiếu phần sau dấu #');
+                                loadingScreen.style.display = 'none';
+                                scene.style.opacity = '1';
+                                return;
+                            }
+                        } else {
+                            // Postcard cũ (chưa mã hóa) – tương thích ngược
+                            data = rawData;
+                        }
 
                         if (data.mediaUrl || data.image) {
                             displayImage.style.display = 'none';
